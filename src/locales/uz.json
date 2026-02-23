@@ -55,7 +55,7 @@
     "deleteSuccess": "Transport muvaffaqiyatli o'chirildi",
     "saveSuccess": "Transport muvaffaqiyatli saqlandi",
     "list": "Transportlar ro'yxati",
-    "createdAt": "Yaratilgan sana"
+    "createdAt": "Sana"
   },
   "map": {
     "zoom": "Masshtab",

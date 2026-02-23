@@ -5,6 +5,7 @@ import { useCarsStore } from '@/stores/cars.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import Card from '@/components/ui/Card.vue'
+import Badge from '@/components/ui/Badge.vue'
 import Dialog from '@/components/ui/Dialog.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,6 @@ const uiStore = useUiStore()
 
 const isFormDialogOpen = ref(false)
 const isViewDialogOpen = ref(false)
-const isDeleteDialogOpen = ref(false)
 const isEditing = ref(false)
 const selectedCar = ref<CarType | null>(null)
 const isSubmitting = ref(false)
@@ -93,11 +93,6 @@ function openViewDialog(car: CarType) {
   isViewDialogOpen.value = true
 }
 
-function openDeleteDialog(car: CarType) {
-  selectedCar.value = car
-  isDeleteDialogOpen.value = true
-}
-
 async function handleSubmit() {
   if (isSubmitting.value) return
   isSubmitting.value = true
@@ -106,6 +101,7 @@ async function handleSubmit() {
     if (isEditing.value && selectedCar.value) {
       const updateData: UpdateCarDto = {
         name: formData.value.name,
+        deviceImei: formData.value.deviceImei,
         deviceModel: formData.value.deviceModel,
       }
       await carsStore.updateCar(selectedCar.value.id, updateData)
@@ -123,22 +119,6 @@ async function handleSubmit() {
     await carsStore.fetchCars({ page: carsStore.currentPage, pageSize: pageSize.value })
   } catch (error) {
     console.error('Failed to save car:', error)
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-async function handleDelete() {
-  if (!selectedCar.value || isSubmitting.value) return
-  isSubmitting.value = true
-
-  try {
-    await carsStore.deleteCar(selectedCar.value.id)
-    isDeleteDialogOpen.value = false
-    // Listni qayta yuklash
-    await carsStore.fetchCars({ page: carsStore.currentPage, pageSize: pageSize.value })
-  } catch (error) {
-    console.error('Failed to delete car:', error)
   } finally {
     isSubmitting.value = false
   }
@@ -208,7 +188,9 @@ onMounted(() => {
             >
               <td class="px-3 py-1.5 text-center text-muted-foreground">{{ (carsStore.currentPage - 1) * pageSize + index + 1 }}</td>
               <td class="px-3 py-1.5 font-medium">{{ car.name }}</td>
-              <td class="px-3 py-1.5 text-muted-foreground font-mono text-xs">{{ car.deviceImei }}</td>
+              <td class="px-3 py-1.5">
+                <Badge variant="secondary" class="font-mono text-xs">{{ car.deviceImei }}</Badge>
+              </td>
               <td class="px-3 py-1.5 text-muted-foreground">{{ car.deviceModel || '-' }}</td>
               <td class="px-3 py-1.5 text-muted-foreground text-xs">{{ formatDate(car.createdAt, uiStore.language) }}</td>
               <td class="px-3 py-1.5">
@@ -228,11 +210,11 @@ onMounted(() => {
                     <Pencil class="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                   <button
-                    class="p-1.5 rounded hover:bg-destructive/10 transition-colors"
-                    @click="openDeleteDialog(car)"
+                    class="p-1.5 rounded transition-colors opacity-30 cursor-not-allowed"
+                    disabled
                     :title="t('vehicle.deleteVehicle')"
                   >
-                    <Trash2 class="h-3.5 w-3.5 text-destructive" />
+                    <Trash2 class="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                 </div>
               </td>
@@ -330,7 +312,6 @@ onMounted(() => {
               id="deviceImei"
               v-model="formData.deviceImei"
               required
-              :disabled="isEditing"
             />
           </div>
           <div class="space-y-2">
@@ -390,35 +371,5 @@ onMounted(() => {
       </div>
     </Dialog>
 
-    <!-- Delete Confirmation Dialog -->
-    <Dialog
-      v-model:open="isDeleteDialogOpen"
-      :title="t('vehicle.deleteVehicle')"
-    >
-      <div class="space-y-4">
-        <p class="text-muted-foreground">
-          {{ t('vehicle.confirmDelete') }}
-        </p>
-        <p v-if="selectedCar" class="font-medium">
-          {{ selectedCar.name }} ({{ selectedCar.deviceImei }})
-        </p>
-
-        <div class="flex justify-end gap-2 pt-4">
-          <Button
-            variant="outline"
-            @click="isDeleteDialogOpen = false"
-          >
-            {{ t('common.cancel') }}
-          </Button>
-          <Button
-            variant="destructive"
-            @click="handleDelete"
-            :disabled="isSubmitting"
-          >
-            {{ t('common.delete') }}
-          </Button>
-        </div>
-      </div>
-    </Dialog>
   </div>
 </template>

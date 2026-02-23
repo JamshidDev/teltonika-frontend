@@ -31,6 +31,7 @@ export function useVehiclesRealtime() {
     })
 
     socket.on('car:location', (data) => {
+      console.log('[Socket] car:location:', data)
       vehiclesStore.updateVehiclePosition(data)
       lastUpdate.value = new Date()
     })

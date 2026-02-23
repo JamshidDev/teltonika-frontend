@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Layers, Plus, Minus, Locate, X, Loader2 } from 'lucide-vue-next'
+import carIconUrl from '@/assets/car-icon.svg'
 
 const { t } = useI18n()
 const vehiclesStore = useVehiclesStore()
@@ -75,16 +76,30 @@ const vehiclesWithPositions = computed(() =>
 // Check if route is showing
 const hasRoute = computed(() => vehiclesStore.routePoints.length > 0)
 
-// Create marker icon for each marker (ensures proper anchor)
-function createCarIcon() {
-  return L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-    shadowAnchor: [12, 41],
+// Create marker icon with car icon and rotation
+function createCarIcon(angle: number = 0) {
+  return L.divIcon({
+    className: 'car-marker',
+    html: `
+      <div style="position: relative; width: 48px; height: 48px;">
+        <!-- Ripple effect -->
+        <div class="car-ripple"></div>
+        <div class="car-ripple car-ripple-delay"></div>
+        <!-- Car icon -->
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(${angle}deg);
+          width: 32px;
+          height: 32px;
+        ">
+          <img src="${carIconUrl}" width="32" height="32" style="display: block;" />
+        </div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
   })
 }
 
@@ -168,6 +183,7 @@ function updateMarkers() {
 
     const existingMarker = markers.value.get(vehicle.carId)
     const position: L.LatLngExpression = [vehicle.lat, vehicle.lng]
+    const angle = vehicle.angle || 0
 
     // Hide marker if this vehicle's route is being shown
     if (routeCarId === vehicle.carId && vehiclesStore.routePoints.length > 0) {
@@ -185,9 +201,11 @@ function updateMarkers() {
 
     if (existingMarker) {
       existingMarker.setLatLng(position)
+      // Update icon with new angle
+      existingMarker.setIcon(createCarIcon(angle))
     } else {
       const marker = L.marker(position, {
-        icon: createCarIcon(),
+        icon: createCarIcon(angle),
         title: vehicle.name,
       })
 
@@ -196,6 +214,8 @@ function updateMarkers() {
         if (map.value) {
           map.value.setView([vehicle.lat!, vehicle.lng!], 16)
         }
+        // Update all markers to reflect selection change
+        updateMarkers()
       })
 
       marker.addTo(markersLayer.value!)
@@ -363,10 +383,13 @@ watch(
   { deep: true }
 )
 
-// Center on selected vehicle from sidebar
+// Center on selected vehicle from sidebar and update marker selection
 watch(
   () => vehiclesStore.selectedVehicleId,
   (carId) => {
+    // Update markers to show selection state
+    updateMarkers()
+
     if (carId && map.value) {
       const vehicle = vehiclesStore.vehicles.find((v) => v.carId === carId)
       if (vehicle?.lat && vehicle?.lng) {
@@ -595,5 +618,40 @@ onUnmounted(() => {
 .route-arrow {
   background: transparent;
   border: none;
+}
+
+.car-marker {
+  background: transparent;
+  border: none;
+}
+
+.car-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.5);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  animation: ripple 1.5s ease-out infinite;
+}
+
+.car-ripple-delay {
+  animation-delay: 0.75s;
+}
+
+@keyframes ripple {
+  0% {
+    width: 24px;
+    height: 24px;
+    opacity: 1;
+  }
+  100% {
+    width: 70px;
+    height: 70px;
+    opacity: 0;
+  }
 }
 </style>

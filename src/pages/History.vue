@@ -32,25 +32,12 @@ const carsLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(Number(localStorage.getItem('history_pageSize')) || 10)
 const selectedCarId = ref<number | null>(null)
-const fromDate = ref('')
-const toDate = ref('')
 const selectedPosition = ref<HistoryPosition | null>(null)
 const isPreviewOpen = ref(false)
 
 function openPreview(pos: HistoryPosition) {
   selectedPosition.value = pos
   isPreviewOpen.value = true
-}
-
-function formatDateTimeForInput(isoString: string): string {
-  const date = new Date(isoString)
-  // Format: YYYY-MM-DDTHH:mm
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
 const totalPages = computed(() => meta.value?.totalPages || 1)
@@ -93,20 +80,12 @@ async function fetchCars() {
 async function fetchPositions() {
   loading.value = true
   try {
-    const params: { page: number; pageSize: number; carId?: number; from?: string; to?: string } = {
+    const params: { page: number; pageSize: number; carId?: number } = {
       page: currentPage.value,
       pageSize: pageSize.value,
     }
     if (selectedCarId.value) {
       params.carId = selectedCarId.value
-    }
-    if (fromDate.value) {
-      const from = new Date(fromDate.value)
-      params.from = from.toISOString()
-    }
-    if (toDate.value) {
-      const to = new Date(toDate.value)
-      params.to = to.toISOString()
     }
     const response = await carsApi.getHistoryPositions(params)
     positions.value = response.data
@@ -136,33 +115,11 @@ async function onCarFilterChange(carId: string) {
   await fetchPositions()
 }
 
-async function onFromDateChange(value: string) {
-  fromDate.value = value
-  currentPage.value = 1
-  await fetchPositions()
-}
-
-async function onToDateChange(value: string) {
-  toDate.value = value
-  currentPage.value = 1
-  await fetchPositions()
-}
-
 onMounted(() => {
   // Check for query params
   const carIdParam = route.query.carId
   if (carIdParam) {
     selectedCarId.value = Number(carIdParam)
-  }
-
-  const fromParam = route.query.from as string
-  if (fromParam) {
-    fromDate.value = formatDateTimeForInput(fromParam)
-  }
-
-  const toParam = route.query.to as string
-  if (toParam) {
-    toDate.value = formatDateTimeForInput(toParam)
   }
 
   fetchCars()
@@ -180,7 +137,7 @@ onMounted(() => {
     </div>
 
     <!-- Filter -->
-    <div class="flex items-center gap-3 mb-4 flex-wrap">
+    <div class="flex items-center gap-3 mb-4">
       <div class="flex items-center gap-2">
         <Filter class="h-4 w-4 text-muted-foreground" />
         <select
@@ -193,24 +150,6 @@ onMounted(() => {
             {{ car.name }}
           </option>
         </select>
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-muted-foreground">{{ t('history.from') }}:</label>
-        <input
-          :value="fromDate"
-          type="datetime-local"
-          class="h-9 px-3 rounded-md border border-input bg-background text-sm"
-          @change="onFromDateChange(($event.target as HTMLInputElement).value)"
-        />
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-muted-foreground">{{ t('history.to') }}:</label>
-        <input
-          :value="toDate"
-          type="datetime-local"
-          class="h-9 px-3 rounded-md border border-input bg-background text-sm"
-          @change="onToDateChange(($event.target as HTMLInputElement).value)"
-        />
       </div>
     </div>
 

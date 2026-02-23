@@ -55,7 +55,7 @@
     "deleteSuccess": "Vehicle deleted successfully",
     "saveSuccess": "Vehicle saved successfully",
     "list": "Vehicle List",
-    "createdAt": "Created At"
+    "createdAt": "Date"
   },
   "map": {
     "zoom": "Zoom",

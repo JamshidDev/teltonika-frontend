@@ -47,7 +47,7 @@ export const carsApi = {
 
   // Update car
   async update(id: number, data: UpdateCarDto): Promise<Car> {
-    const response = await api.patch<Car>(`/car/${id}`, data)
+    const response = await api.put<Car>(`/car/${id}`, data)
     return response.data
   },
 

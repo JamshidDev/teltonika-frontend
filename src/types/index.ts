@@ -35,6 +35,7 @@ export interface CreateCarDto {
 
 export interface UpdateCarDto {
   name?: string
+  deviceImei?: string
   deviceModel?: string
 }
 
