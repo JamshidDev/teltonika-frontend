@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useVehiclesStore } from '@/stores/vehicles.store'
@@ -30,8 +30,6 @@ const router = useRouter()
 const vehiclesStore = useVehiclesStore()
 const uiStore = useUiStore()
 
-const listRef = ref<HTMLElement | null>(null)
-
 const vehicles = computed(() => vehiclesStore.filteredVehicles)
 
 // Navigation items
@@ -53,8 +51,8 @@ const activeTab = computed(() => {
   return 'dashboard'
 })
 
-function handleSearch(value: string) {
-  vehiclesStore.setSearchQuery(value)
+function handleSearch(value: string | number) {
+  vehiclesStore.setSearchQuery(String(value))
 }
 
 function toggleCollapse() {
@@ -120,7 +118,6 @@ onMounted(() => {
     <!-- Vehicles List -->
     <div
       v-else
-      ref="listRef"
       class="flex-1 overflow-y-auto"
       @scroll="handleScroll"
     >

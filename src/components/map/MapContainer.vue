@@ -22,14 +22,22 @@ const uiStore = useUiStore()
 useVehiclesRealtime()
 
 const mapContainer = ref<HTMLElement | null>(null)
-const map = ref<L.Map | null>(null)
-const tileLayer = ref<L.TileLayer | null>(null)
-const markersLayer = ref<L.LayerGroup | null>(null)
-const markers = ref<Map<number, L.Marker>>(new Map())
-const routeLine = ref<L.Polyline | null>(null)
-const routeArrows = ref<L.Marker[]>([])
-const routeStartMarker = ref<L.Marker | null>(null)
-const routeEndMarker = ref<L.Marker | null>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const map = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const tileLayer = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const markersLayer = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const markers = ref<Map<number, any>>(new Map())
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeLine = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeArrows = ref<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeStartMarker = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeEndMarker = ref<any>(null)
 
 const currentTile = ref('osm')
 
@@ -96,7 +104,7 @@ function changeTile(tileKey: string) {
   const tile = mapTiles[tileKey as keyof typeof mapTiles]
 
   if (tileLayer.value) {
-    map.value.removeLayer(tileLayer.value)
+    map.value.removeLayer(tileLayer.value )
   }
 
   tileLayer.value = L.tileLayer(tile.url, {
@@ -269,7 +277,7 @@ function drawRouteLine() {
 
   // Remove existing route line
   if (routeLine.value) {
-    map.value.removeLayer(routeLine.value)
+    map.value.removeLayer(routeLine.value )
     routeLine.value = null
   }
 
@@ -281,13 +289,13 @@ function drawRouteLine() {
   if (routeStartMarker.value) {
     routeStartMarker.value.closePopup()
     routeStartMarker.value.unbindPopup()
-    map.value.removeLayer(routeStartMarker.value)
+    map.value.removeLayer(routeStartMarker.value )
     routeStartMarker.value = null
   }
   if (routeEndMarker.value) {
     routeEndMarker.value.closePopup()
     routeEndMarker.value.unbindPopup()
-    map.value.removeLayer(routeEndMarker.value)
+    map.value.removeLayer(routeEndMarker.value )
     routeEndMarker.value = null
   }
 
@@ -305,8 +313,8 @@ function drawRouteLine() {
 
   // Add direction arrows only at significant turns (>25 degrees)
   for (let i = 1; i < points.length - 1; i++) {
-    const prev = points[i - 1]
-    const curr = points[i]
+    const prev = points[i - 1]!
+    const curr = points[i]!
 
     let angleDiff = Math.abs(curr.angle - prev.angle)
     // Normalize angle difference > 180 (e.g., diff between 350 and 10 should be 20)
@@ -323,7 +331,7 @@ function drawRouteLine() {
   }
 
   // Add start marker (green)
-  const startPoint = points[0]
+  const startPoint = points[0]!
   routeStartMarker.value = L.marker([startPoint.lat, startPoint.lng], {
     icon: createStartIcon(),
   })
@@ -331,7 +339,7 @@ function drawRouteLine() {
     .addTo(map.value)
 
   // Add end marker (red)
-  const endPoint = points[points.length - 1]
+  const endPoint = points[points.length - 1]!
   routeEndMarker.value = L.marker([endPoint.lat, endPoint.lng], {
     icon: createEndIcon(),
   })
@@ -350,7 +358,7 @@ function clearRouteLine() {
   if (!map.value) return
 
   if (routeLine.value) {
-    map.value.removeLayer(routeLine.value)
+    map.value.removeLayer(routeLine.value )
     routeLine.value = null
   }
 
@@ -362,13 +370,13 @@ function clearRouteLine() {
   if (routeStartMarker.value) {
     routeStartMarker.value.closePopup()
     routeStartMarker.value.unbindPopup()
-    map.value.removeLayer(routeStartMarker.value)
+    map.value.removeLayer(routeStartMarker.value )
     routeStartMarker.value = null
   }
   if (routeEndMarker.value) {
     routeEndMarker.value.closePopup()
     routeEndMarker.value.unbindPopup()
-    map.value.removeLayer(routeEndMarker.value)
+    map.value.removeLayer(routeEndMarker.value )
     routeEndMarker.value = null
   }
 }
@@ -432,7 +440,7 @@ onUnmounted(() => {
 
   // Clean up route line
   if (routeLine.value && map.value) {
-    map.value.removeLayer(routeLine.value)
+    map.value.removeLayer(routeLine.value )
     routeLine.value = null
   }
 
@@ -454,7 +462,7 @@ onUnmounted(() => {
 
   // Clean up markers layer
   if (markersLayer.value && map.value) {
-    map.value.removeLayer(markersLayer.value)
+    map.value.removeLayer(markersLayer.value )
     markersLayer.value = null
   }
 

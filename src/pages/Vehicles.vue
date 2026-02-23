@@ -63,8 +63,8 @@ const visiblePages = computed(() => {
   return pages.filter(p => p >= 1 && p <= total)
 })
 
-function handleSearch(value: string) {
-  carsStore.setSearchQuery(value)
+function handleSearch(value: string | number) {
+  carsStore.setSearchQuery(String(value))
 }
 
 function openAddDialog() {

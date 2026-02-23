@@ -1,5 +1,5 @@
 import api from './axios'
-import type { Vehicle, VehiclePosition } from '@/types'
+import type { VehiclePosition } from '@/types'
 
 // Vehicles API endpoints (for realtime tracking)
 export const vehiclesApi = {
