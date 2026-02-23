@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Layers, Plus, Minus, Locate, X } from 'lucide-vue-next'
+import { Layers, Plus, Minus, Locate, X, Loader2 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const vehiclesStore = useVehiclesStore()
@@ -35,9 +35,6 @@ const routeLine = ref<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const routeArrows = ref<any[]>([])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeStartMarker = ref<any>(null)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeEndMarker = ref<any>(null)
 
 const currentTile = ref('osm')
 
@@ -123,6 +120,7 @@ function initMap() {
 
   map.value = L.map(mapContainer.value, {
     zoomControl: false,
+    zoomAnimationThreshold: 4,
   }).setView([defaultLat, defaultLng], defaultZoom)
 
   // Add initial tile layer based on dark mode
@@ -162,24 +160,35 @@ function initMap() {
 function updateMarkers() {
   if (!map.value || !markersLayer.value) return
 
+  // Check if we're showing a route for a vehicle
+  const routeCarId = vehiclesStore.routeCarId
+
   vehiclesWithPositions.value.forEach((vehicle) => {
     if (vehicle.lat === null || vehicle.lng === null) return
 
     const existingMarker = markers.value.get(vehicle.carId)
     const position: L.LatLngExpression = [vehicle.lat, vehicle.lng]
 
+    // Hide marker if this vehicle's route is being shown
+    if (routeCarId === vehicle.carId && vehiclesStore.routePoints.length > 0) {
+      if (existingMarker) {
+        try {
+          existingMarker.off()
+          existingMarker.remove()
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        markers.value.delete(vehicle.carId)
+      }
+      return
+    }
+
     if (existingMarker) {
       existingMarker.setLatLng(position)
     } else {
       const marker = L.marker(position, {
         icon: createCarIcon(),
-      })
-
-      // Tooltip with vehicle name
-      marker.bindTooltip(vehicle.name, {
-        permanent: false,
-        direction: 'top',
-        offset: [0, -16],
+        title: vehicle.name,
       })
 
       marker.on('click', () => {
@@ -197,7 +206,12 @@ function updateMarkers() {
   // Remove markers for vehicles that no longer exist
   markers.value.forEach((marker, carId) => {
     if (!vehiclesWithPositions.value.find((v) => v.carId === carId)) {
-      marker.remove()
+      try {
+        marker.off()
+        marker.remove()
+      } catch (e) {
+        // Ignore cleanup errors
+      }
       markers.value.delete(carId)
     }
   })
@@ -216,6 +230,18 @@ function fitAllMarkers() {
   map.value.fitBounds(bounds, { padding: [50, 50] })
 }
 
+// Format route date for display
+function formatRouteDate(dateStr: string | null): string {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString(uiStore.language, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 // Create arrow icon for direction
 function createArrowIcon(angle: number) {
   return L.divIcon({
@@ -230,74 +256,34 @@ function createArrowIcon(angle: number) {
   })
 }
 
-// Create start marker icon (green)
-function createStartIcon() {
-  return L.divIcon({
-    className: 'route-marker',
-    html: `<div style="width: 32px; height: 32px; background-color: #22c55e; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-      <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="white">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-    </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  })
-}
-
-// Create end marker icon (red)
-function createEndIcon() {
-  return L.divIcon({
-    className: 'route-marker',
-    html: `<div style="width: 32px; height: 32px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-      <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="white">
-        <path d="M6 6h12v12H6z"/>
-      </svg>
-    </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  })
-}
-
-// Format time for popup
-function formatRouteTime(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleString(uiStore.language, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
 // Draw route line on map
 function drawRouteLine() {
   if (!map.value) return
 
+  // Stop any ongoing animations
+  map.value.stop()
+
   // Remove existing route line
   if (routeLine.value) {
-    map.value.removeLayer(routeLine.value )
+    try {
+      routeLine.value.off()
+      routeLine.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
     routeLine.value = null
   }
 
   // Remove existing arrows
-  routeArrows.value.forEach((arrow) => arrow.remove())
+  routeArrows.value.forEach((arrow) => {
+    try {
+      arrow.off()
+      arrow.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  })
   routeArrows.value = []
-
-  // Remove existing start/end markers
-  if (routeStartMarker.value) {
-    routeStartMarker.value.closePopup()
-    routeStartMarker.value.unbindPopup()
-    map.value.removeLayer(routeStartMarker.value )
-    routeStartMarker.value = null
-  }
-  if (routeEndMarker.value) {
-    routeEndMarker.value.closePopup()
-    routeEndMarker.value.unbindPopup()
-    map.value.removeLayer(routeEndMarker.value )
-    routeEndMarker.value = null
-  }
 
   const points = vehiclesStore.routePoints
   if (points.length === 0) return
@@ -330,22 +316,6 @@ function drawRouteLine() {
     }
   }
 
-  // Add start marker (green)
-  const startPoint = points[0]!
-  routeStartMarker.value = L.marker([startPoint.lat, startPoint.lng], {
-    icon: createStartIcon(),
-  })
-    .bindPopup(`<div style="text-align: center;"><strong style="color: #22c55e;">${t('history.start')}</strong><br/>${formatRouteTime(startPoint.recordedAt)}</div>`)
-    .addTo(map.value)
-
-  // Add end marker (red)
-  const endPoint = points[points.length - 1]!
-  routeEndMarker.value = L.marker([endPoint.lat, endPoint.lng], {
-    icon: createEndIcon(),
-  })
-    .bindPopup(`<div style="text-align: center;"><strong style="color: #ef4444;">${t('history.end')}</strong><br/>${formatRouteTime(endPoint.recordedAt)}</div>`)
-    .addTo(map.value)
-
   // Fit map to route bounds
   if (latLngs.length > 0) {
     const bounds = L.latLngBounds(latLngs)
@@ -357,28 +327,29 @@ function drawRouteLine() {
 function clearRouteLine() {
   if (!map.value) return
 
+  // Stop any ongoing animations
+  map.value.stop()
+
   if (routeLine.value) {
-    map.value.removeLayer(routeLine.value )
+    try {
+      routeLine.value.off()
+      routeLine.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
     routeLine.value = null
   }
 
   // Remove arrows
-  routeArrows.value.forEach((arrow) => arrow.remove())
+  routeArrows.value.forEach((arrow) => {
+    try {
+      arrow.off()
+      arrow.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  })
   routeArrows.value = []
-
-  // Remove start/end markers
-  if (routeStartMarker.value) {
-    routeStartMarker.value.closePopup()
-    routeStartMarker.value.unbindPopup()
-    map.value.removeLayer(routeStartMarker.value )
-    routeStartMarker.value = null
-  }
-  if (routeEndMarker.value) {
-    routeEndMarker.value.closePopup()
-    routeEndMarker.value.unbindPopup()
-    map.value.removeLayer(routeEndMarker.value )
-    routeEndMarker.value = null
-  }
 }
 
 // Watch for route points changes
@@ -386,6 +357,8 @@ watch(
   () => vehiclesStore.routePoints,
   () => {
     drawRouteLine()
+    // Update markers to hide/show the route vehicle marker
+    updateMarkers()
   },
   { deep: true }
 )
@@ -431,47 +404,78 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (!map.value) return
+
+  // Stop any ongoing animations
+  map.value.stop()
+
+  // Close all popups first
+  map.value.closePopup()
+
   // Clean up vehicle markers
   markers.value.forEach((marker) => {
-    marker.unbindTooltip()
-    marker.remove()
+    try {
+      marker.off()
+      marker.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
   })
   markers.value.clear()
 
+  // Clean up route arrows
+  routeArrows.value.forEach((arrow) => {
+    try {
+      arrow.off()
+      arrow.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  })
+  routeArrows.value = []
+
   // Clean up route line
-  if (routeLine.value && map.value) {
-    map.value.removeLayer(routeLine.value )
+  if (routeLine.value) {
+    try {
+      routeLine.value.off()
+      routeLine.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
     routeLine.value = null
   }
 
-  // Clean up route arrows
-  routeArrows.value.forEach((arrow) => arrow.remove())
-  routeArrows.value = []
-
-  // Clean up start/end markers
-  if (routeStartMarker.value) {
-    routeStartMarker.value.unbindPopup()
-    routeStartMarker.value.remove()
-    routeStartMarker.value = null
-  }
-  if (routeEndMarker.value) {
-    routeEndMarker.value.unbindPopup()
-    routeEndMarker.value.remove()
-    routeEndMarker.value = null
-  }
-
   // Clean up markers layer
-  if (markersLayer.value && map.value) {
-    map.value.removeLayer(markersLayer.value )
+  if (markersLayer.value) {
+    try {
+      markersLayer.value.clearLayers()
+      markersLayer.value.off()
+      markersLayer.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
     markersLayer.value = null
   }
 
+  // Clean up tile layer
+  if (tileLayer.value) {
+    try {
+      tileLayer.value.off()
+      tileLayer.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    tileLayer.value = null
+  }
+
   // Finally remove the map
-  if (map.value) {
+  try {
     map.value.off()
     map.value.remove()
-    map.value = null
+  } catch (e) {
+    // Ignore cleanup errors
   }
+  map.value = null
 })
 </script>
 
@@ -480,15 +484,46 @@ onUnmounted(() => {
     <!-- Map Container -->
     <div ref="mapContainer" class="absolute inset-0 z-0" />
 
-    <!-- Clear Route Button -->
-    <div v-if="hasRoute" class="absolute top-4 right-4 z-[1000]">
-      <button
-        class="flex items-center gap-2 px-3 py-2 bg-background rounded-md shadow-md hover:bg-accent transition-colors"
-        @click="vehiclesStore.clearRoute(); clearRouteLine()"
-      >
-        <X class="h-4 w-4" />
-        <span class="text-sm">{{ t('map.clearRoute') }}</span>
-      </button>
+    <!-- Route Loading Overlay -->
+    <div
+      v-if="vehiclesStore.routeLoading"
+      class="absolute inset-0 z-[999] bg-background/50 flex items-center justify-center"
+    >
+      <div class="flex flex-col items-center gap-2 bg-background rounded-lg shadow-lg px-6 py-4">
+        <Loader2 class="h-8 w-8 animate-spin text-primary" />
+        <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
+      </div>
+    </div>
+
+    <!-- Route Info Card -->
+    <div v-if="hasRoute" class="absolute right-4 z-[1000]" style="top: 4rem;">
+      <div class="bg-background rounded-lg shadow-lg min-w-[220px] overflow-hidden border border-border">
+        <!-- Vehicle name -->
+        <div class="font-medium text-foreground px-3 py-2 border-b border-border">
+          {{ vehiclesStore.routeVehicleName }}
+        </div>
+
+        <!-- Date range -->
+        <div class="text-xs text-muted-foreground px-3 py-2 border-b border-border space-y-1">
+          <div class="flex justify-between">
+            <span>{{ t('history.from') }}:</span>
+            <span class="font-medium text-foreground">{{ formatRouteDate(vehiclesStore.routeFrom) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>{{ t('history.to') }}:</span>
+            <span class="font-medium text-foreground">{{ formatRouteDate(vehiclesStore.routeTo) }}</span>
+          </div>
+        </div>
+
+        <!-- Clear button -->
+        <button
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-destructive hover:bg-destructive/10 transition-colors text-sm"
+          @click="vehiclesStore.clearRoute(); clearRouteLine()"
+        >
+          <X class="h-4 w-4" />
+          <span>{{ t('map.clearRoute') }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Map Controls -->
@@ -557,33 +592,8 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
-.leaflet-tooltip {
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  color: hsl(var(--foreground));
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.leaflet-tooltip-top:before {
-  border-top-color: hsl(var(--border));
-}
-
 .route-arrow {
   background: transparent;
   border: none;
-}
-
-.route-marker {
-  background: transparent;
-  border: none;
-}
-
-.leaflet-popup-content {
-  margin: 8px 12px;
-  font-size: 13px;
 }
 </style>

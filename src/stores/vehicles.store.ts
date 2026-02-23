@@ -17,6 +17,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   const routePoints = ref<RoutePoint[]>([])
   const routeLoading = ref(false)
   const routeCarId = ref<number | null>(null)
+  const routeFrom = ref<string | null>(null)
+  const routeTo = ref<string | null>(null)
 
   // Getters
   const selectedVehicle = computed(() => {
@@ -56,6 +58,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
 
   const hasMore = computed(() => meta.value?.hasNext ?? false)
   const currentPage = computed(() => meta.value?.page ?? 1)
+
+  // Get route vehicle name
+  const routeVehicleName = computed(() => {
+    if (!routeCarId.value) return null
+    const vehicle = vehicles.value.find((v) => v.carId === routeCarId.value)
+    return vehicle?.name || null
+  })
 
   // Helper functions
   function isOnline(recordedAt: string): boolean {
@@ -140,6 +149,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   async function fetchRoute(carId: number, from: string, to: string): Promise<void> {
     routeLoading.value = true
     routeCarId.value = carId
+    routeFrom.value = from
+    routeTo.value = to
 
     try {
       const points = await carsApi.getHistoryRoute({ carId, from, to })
@@ -156,6 +167,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   function clearRoute(): void {
     routePoints.value = []
     routeCarId.value = null
+    routeFrom.value = null
+    routeTo.value = null
   }
 
   return {
@@ -170,6 +183,9 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     routePoints,
     routeLoading,
     routeCarId,
+    routeFrom,
+    routeTo,
+    routeVehicleName,
     // Getters
     selectedVehicle,
     filteredVehicles,
