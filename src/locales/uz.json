@@ -1,0 +1,141 @@
+{
+  "app": {
+    "title": "GPS Tracking",
+    "subtitle": "Transport kuzatuv tizimi"
+  },
+  "auth": {
+    "login": "Kirish",
+    "logout": "Chiqish",
+    "username": "Foydalanuvchi nomi",
+    "password": "Parol",
+    "loginButton": "Tizimga kirish",
+    "loginError": "Login yoki parol noto'g'ri",
+    "welcome": "Xush kelibsiz"
+  },
+  "nav": {
+    "dashboard": "Boshqaruv paneli",
+    "history": "Tarix",
+    "events": "Hodisalar",
+    "reports": "Hisobotlar",
+    "settings": "Sozlamalar",
+    "vehicles": "Transportlar"
+  },
+  "sidebar": {
+    "vehicles": "Transport vositalari",
+    "search": "Qidirish...",
+    "online": "Onlayn",
+    "offline": "Oflayn",
+    "all": "Barchasi",
+    "noVehicles": "Transport topilmadi"
+  },
+  "vehicle": {
+    "speed": "Tezlik",
+    "status": "Holat",
+    "lastUpdate": "Oxirgi yangilanish",
+    "moving": "Harakatda",
+    "stopped": "To'xtagan",
+    "idle": "Kutmoqda",
+    "online": "Onlayn",
+    "offline": "Oflayn",
+    "plateNumber": "Davlat raqami",
+    "driver": "Haydovchi",
+    "fuel": "Yoqilg'i",
+    "mileage": "Yurgan masofa",
+    "address": "Manzil",
+    "name": "Nomi",
+    "imei": "IMEI",
+    "model": "Model",
+    "brand": "Brend",
+    "color": "Rang",
+    "addVehicle": "Transport qo'shish",
+    "editVehicle": "Transportni tahrirlash",
+    "deleteVehicle": "Transportni o'chirish",
+    "viewVehicle": "Transportni ko'rish",
+    "confirmDelete": "Haqiqatan ham bu transportni o'chirmoqchimisiz?",
+    "deleteSuccess": "Transport muvaffaqiyatli o'chirildi",
+    "saveSuccess": "Transport muvaffaqiyatli saqlandi",
+    "list": "Transportlar ro'yxati",
+    "createdAt": "Yaratilgan sana"
+  },
+  "map": {
+    "zoom": "Masshtab",
+    "zoomIn": "Kattalashtirish",
+    "zoomOut": "Kichiklashtirish",
+    "center": "Markazga",
+    "layers": "Qatlamlar",
+    "fitAll": "Barchasini ko'rsatish",
+    "satellite": "Sun'iy yo'ldosh",
+    "street": "Ko'cha xaritasi",
+    "traffic": "Tirbandlik",
+    "fullscreen": "To'liq ekran",
+    "clearRoute": "Yo'lni tozalash"
+  },
+  "history": {
+    "title": "Harakat tarixi",
+    "selectVehicle": "Transport tanlang",
+    "from": "Boshlanish sanasi",
+    "to": "Tugash sanasi",
+    "play": "Ijro etish",
+    "pause": "To'xtatish",
+    "stop": "Bekor qilish",
+    "speed": "Ijro tezligi",
+    "noData": "Ma'lumot topilmadi",
+    "recordedAt": "Sana",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "customDate": "Boshqa sana",
+    "start": "Boshlash",
+    "end": "Tugash"
+  },
+  "events": {
+    "title": "Hodisalar",
+    "all": "Barcha hodisalar",
+    "alerts": "Ogohlantirishlar",
+    "info": "Ma'lumotlar",
+    "noEvents": "Hodisalar yo'q"
+  },
+  "reports": {
+    "title": "Hisobotlar",
+    "generate": "Hisobot yaratish",
+    "download": "Yuklab olish",
+    "daily": "Kunlik",
+    "weekly": "Haftalik",
+    "monthly": "Oylik",
+    "custom": "Boshqa davr"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "language": "Til",
+    "theme": "Mavzu",
+    "darkMode": "Qorong'u rejim",
+    "lightMode": "Yorug' rejim",
+    "notifications": "Bildirishnomalar",
+    "mapType": "Xarita turi",
+    "units": "O'lchov birliklari",
+    "timezone": "Vaqt mintaqasi"
+  },
+  "common": {
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik yuz berdi",
+    "retry": "Qayta urinish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "close": "Yopish",
+    "confirm": "Tasdiqlash",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "noData": "Ma'lumot yo'q",
+    "total": "Jami",
+    "pageSize": "Sahifada",
+    "preview": "Ko'rish"
+  },
+  "time": {
+    "now": "hozir",
+    "seconds": "soniya oldin",
+    "minutes": "daqiqa oldin",
+    "hours": "soat oldin",
+    "days": "kun oldin"
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "app": {
+    "title": "GPS Tracking",
+    "subtitle": "Vehicle Monitoring System"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "loginError": "Invalid username or password",
+    "welcome": "Welcome"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "events": "Events",
+    "reports": "Reports",
+    "settings": "Settings",
+    "vehicles": "Vehicles"
+  },
+  "sidebar": {
+    "vehicles": "Vehicles",
+    "search": "Search...",
+    "online": "Online",
+    "offline": "Offline",
+    "all": "All",
+    "noVehicles": "No vehicles found"
+  },
+  "vehicle": {
+    "speed": "Speed",
+    "status": "Status",
+    "lastUpdate": "Last Update",
+    "moving": "Moving",
+    "stopped": "Stopped",
+    "idle": "Idle",
+    "online": "Online",
+    "offline": "Offline",
+    "plateNumber": "Plate Number",
+    "driver": "Driver",
+    "fuel": "Fuel",
+    "mileage": "Mileage",
+    "address": "Address",
+    "name": "Name",
+    "imei": "IMEI",
+    "model": "Model",
+    "brand": "Brand",
+    "color": "Color",
+    "addVehicle": "Add Vehicle",
+    "editVehicle": "Edit Vehicle",
+    "deleteVehicle": "Delete Vehicle",
+    "viewVehicle": "View Vehicle",
+    "confirmDelete": "Are you sure you want to delete this vehicle?",
+    "deleteSuccess": "Vehicle deleted successfully",
+    "saveSuccess": "Vehicle saved successfully",
+    "list": "Vehicle List",
+    "createdAt": "Created At"
+  },
+  "map": {
+    "zoom": "Zoom",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "center": "Center",
+    "layers": "Layers",
+    "fitAll": "Fit All",
+    "satellite": "Satellite",
+    "street": "Street Map",
+    "traffic": "Traffic",
+    "fullscreen": "Fullscreen",
+    "clearRoute": "Clear Route"
+  },
+  "history": {
+    "title": "Movement History",
+    "selectVehicle": "Select Vehicle",
+    "from": "Start Date",
+    "to": "End Date",
+    "play": "Play",
+    "pause": "Pause",
+    "stop": "Stop",
+    "speed": "Playback Speed",
+    "noData": "No data found",
+    "recordedAt": "Recorded At",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "customDate": "Custom Date",
+    "start": "Start",
+    "end": "End"
+  },
+  "events": {
+    "title": "Events",
+    "all": "All Events",
+    "alerts": "Alerts",
+    "info": "Information",
+    "noEvents": "No events"
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": "Generate Report",
+    "download": "Download",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "custom": "Custom Period"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "notifications": "Notifications",
+    "mapType": "Map Type",
+    "units": "Units",
+    "timezone": "Timezone"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "noData": "No data",
+    "total": "Total",
+    "pageSize": "Per page",
+    "preview": "Preview"
+  },
+  "time": {
+    "now": "now",
+    "seconds": "sec ago",
+    "minutes": "min ago",
+    "hours": "hr ago",
+    "days": "days ago"
+  }
+}
