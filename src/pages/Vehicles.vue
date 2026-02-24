@@ -2,14 +2,23 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCarsStore } from '@/stores/cars.store'
-import { useAuthStore } from '@/stores/auth.store'
+import { useDevicesStore } from '@/stores/devices.store'
+import { useDriversStore } from '@/stores/drivers.store'
 import { useUiStore } from '@/stores/ui.store'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Dialog from '@/components/ui/Dialog.vue'
+import SearchableSelect from '@/components/ui/SearchableSelect.vue'
+import type { SelectOption } from '@/components/ui/SearchableSelect.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Car,
   Plus,
@@ -19,13 +28,18 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Loader2,
+  Cpu,
+  User,
+  MoreVertical,
 } from 'lucide-vue-next'
 import type { Car as CarType, CreateCarDto, UpdateCarDto } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils'
 
 const { t } = useI18n()
 const carsStore = useCarsStore()
-const authStore = useAuthStore()
+const devicesStore = useDevicesStore()
+const driversStore = useDriversStore()
 const uiStore = useUiStore()
 
 const isFormDialogOpen = ref(false)
@@ -37,11 +51,31 @@ const pageSize = ref(Number(localStorage.getItem('vehicles_pageSize')) || 10)
 
 const formData = ref({
   name: '',
-  deviceImei: '',
-  deviceModel: '',
+  carNumber: '',
+  deviceId: null as number | null,
+  driverId: null as number | null,
 })
 
 const cars = computed(() => carsStore.filteredCars)
+
+// Options for searchable selects
+const deviceOptions = computed<SelectOption[]>(() =>
+  devicesStore.devices.map(device => ({
+    value: device.id,
+    label: device.imei,
+    description: device.model,
+    icon: Cpu,
+  }))
+)
+
+const driverOptions = computed<SelectOption[]>(() =>
+  driversStore.drivers.map(driver => ({
+    value: driver.id,
+    label: driver.fullName,
+    description: driver.phone,
+    icon: User,
+  }))
+)
 
 const visiblePages = computed(() => {
   const total = carsStore.totalPages || 1
@@ -67,24 +101,36 @@ function handleSearch(value: string | number) {
   carsStore.setSearchQuery(String(value))
 }
 
-function openAddDialog() {
+async function openAddDialog() {
   isEditing.value = false
   formData.value = {
     name: '',
-    deviceImei: '',
-    deviceModel: '',
+    carNumber: '',
+    deviceId: null,
+    driverId: null,
   }
+  // Fetch devices and drivers for select options
+  await Promise.all([
+    devicesStore.fetchDevices(1, 100),
+    driversStore.fetchDrivers(1, 100),
+  ])
   isFormDialogOpen.value = true
 }
 
-function openEditDialog(car: CarType) {
+async function openEditDialog(car: CarType) {
   isEditing.value = true
   selectedCar.value = car
   formData.value = {
     name: car.name,
-    deviceImei: car.deviceImei,
-    deviceModel: car.deviceModel || '',
+    carNumber: car.carNumber || '',
+    deviceId: car.device?.id || null,
+    driverId: car.driver?.id || null,
   }
+  // Fetch devices and drivers for select options
+  await Promise.all([
+    devicesStore.fetchDevices(1, 100),
+    driversStore.fetchDrivers(1, 100),
+  ])
   isFormDialogOpen.value = true
 }
 
@@ -101,16 +147,17 @@ async function handleSubmit() {
     if (isEditing.value && selectedCar.value) {
       const updateData: UpdateCarDto = {
         name: formData.value.name,
-        deviceImei: formData.value.deviceImei,
-        deviceModel: formData.value.deviceModel,
+        carNumber: formData.value.carNumber,
+        deviceId: formData.value.deviceId || undefined,
+        driverId: formData.value.driverId || undefined,
       }
       await carsStore.updateCar(selectedCar.value.id, updateData)
     } else {
       const createData: CreateCarDto = {
-        userId: authStore.currentUser?.id || 1,
         name: formData.value.name,
-        deviceImei: formData.value.deviceImei,
-        deviceModel: formData.value.deviceModel,
+        carNumber: formData.value.carNumber,
+        deviceId: formData.value.deviceId || undefined,
+        driverId: formData.value.driverId || undefined,
       }
       await carsStore.createCar(createData)
     }
@@ -167,17 +214,29 @@ onMounted(() => {
     </div>
 
     <!-- Table -->
-    <Card class="flex-1 overflow-hidden flex flex-col">
+    <Card class="flex-1 overflow-hidden flex flex-col relative">
+      <!-- Loading overlay -->
+      <div
+        v-if="carsStore.loading"
+        class="absolute inset-0 bg-background/60 z-10 flex items-center justify-center"
+      >
+        <div class="flex flex-col items-center gap-2">
+          <Loader2 class="h-8 w-8 animate-spin text-primary" />
+          <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
+        </div>
+      </div>
+
       <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead class="bg-muted/50 sticky top-0">
+          <thead class="bg-muted/50 sticky top-0 z-[5]">
             <tr>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-12">#</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.name') }}</th>
-              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.imei') }}</th>
-              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.model') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.carNumber') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('nav.devices') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.driver') }}</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.createdAt') }}</th>
-              <th class="text-right px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-28"></th>
+              <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-24">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
@@ -187,35 +246,52 @@ onMounted(() => {
               class="hover:bg-muted/30 transition-colors"
             >
               <td class="px-3 py-1.5 text-center text-muted-foreground">{{ (carsStore.currentPage - 1) * pageSize + index + 1 }}</td>
-              <td class="px-3 py-1.5 font-medium">{{ car.name }}</td>
               <td class="px-3 py-1.5">
-                <Badge variant="secondary" class="font-mono text-xs">{{ car.deviceImei }}</Badge>
+                <div class="font-medium">{{ car.name }}</div>
+                <div class="text-[10px] font-medium text-muted-foreground">ID: {{ car.id }}</div>
               </td>
-              <td class="px-3 py-1.5 text-muted-foreground">{{ car.deviceModel || '-' }}</td>
+              <td class="px-3 py-1.5">
+                <Badge v-if="car.carNumber" variant="secondary" class="font-mono text-xs">{{ car.carNumber }}</Badge>
+                <span v-else class="text-muted-foreground">-</span>
+              </td>
+              <td class="px-3 py-1.5">
+                <div v-if="car.device" class="flex items-center gap-1.5">
+                  <Cpu class="h-3.5 w-3.5 text-primary" />
+                  <Badge variant="secondary" class="font-mono text-xs">{{ car.device.imei }}</Badge>
+                </div>
+                <span v-else class="text-muted-foreground">-</span>
+              </td>
+              <td class="px-3 py-1.5">
+                <div v-if="car.driver" class="flex items-center gap-1.5">
+                  <User class="h-3.5 w-3.5 text-primary" />
+                  <span class="text-sm">{{ car.driver.fullName }}</span>
+                </div>
+                <span v-else class="text-muted-foreground">-</span>
+              </td>
               <td class="px-3 py-1.5 text-muted-foreground text-xs">{{ formatDate(car.createdAt, uiStore.language) }}</td>
               <td class="px-3 py-1.5">
-                <div class="flex items-center justify-end gap-0.5">
-                  <button
-                    class="p-1.5 rounded hover:bg-accent transition-colors"
-                    @click="openViewDialog(car)"
-                    :title="t('vehicle.viewVehicle')"
-                  >
-                    <Eye class="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    class="p-1.5 rounded hover:bg-accent transition-colors"
-                    @click="openEditDialog(car)"
-                    :title="t('vehicle.editVehicle')"
-                  >
-                    <Pencil class="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    class="p-1.5 rounded transition-colors opacity-30 cursor-not-allowed"
-                    disabled
-                    :title="t('vehicle.deleteVehicle')"
-                  >
-                    <Trash2 class="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
+                <div class="flex justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                      <button class="h-8 w-8 rounded-md border border-input flex items-center justify-center hover:bg-accent transition-colors">
+                        <MoreVertical class="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem class="gap-2 cursor-pointer" @click="openViewDialog(car)">
+                        <Eye class="h-4 w-4" />
+                        {{ t('common.preview') }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem class="gap-2 cursor-pointer" @click="openEditDialog(car)">
+                        <Pencil class="h-4 w-4" />
+                        {{ t('common.edit') }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled class="gap-2 text-destructive focus:text-destructive">
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('common.delete') }}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </td>
             </tr>
@@ -228,14 +304,6 @@ onMounted(() => {
           class="flex items-center justify-center py-8 text-muted-foreground text-sm"
         >
           {{ t('sidebar.noVehicles') }}
-        </div>
-
-        <!-- Loading state -->
-        <div
-          v-if="carsStore.loading"
-          class="flex items-center justify-center py-8 text-muted-foreground text-sm"
-        >
-          {{ t('common.loading') }}
         </div>
       </div>
 
@@ -307,18 +375,30 @@ onMounted(() => {
             />
           </div>
           <div class="space-y-2">
-            <Label for="deviceImei">{{ t('vehicle.imei') }} *</Label>
+            <Label for="carNumber">{{ t('vehicle.carNumber') }} *</Label>
             <Input
-              id="deviceImei"
-              v-model="formData.deviceImei"
+              id="carNumber"
+              v-model="formData.carNumber"
+              placeholder="01A123BC"
               required
             />
           </div>
           <div class="space-y-2">
-            <Label for="deviceModel">{{ t('vehicle.model') }}</Label>
-            <Input
-              id="deviceModel"
-              v-model="formData.deviceModel"
+            <Label>{{ t('nav.devices') }}</Label>
+            <SearchableSelect
+              v-model="formData.deviceId"
+              :options="deviceOptions"
+              :placeholder="t('vehicle.selectDevice')"
+              :search-placeholder="t('sidebar.search')"
+            />
+          </div>
+          <div class="space-y-2">
+            <Label>{{ t('vehicle.driver') }}</Label>
+            <SearchableSelect
+              v-model="formData.driverId"
+              :options="driverOptions"
+              :placeholder="t('vehicle.selectDriver')"
+              :search-placeholder="t('sidebar.search')"
             />
           </div>
         </div>
@@ -332,6 +412,7 @@ onMounted(() => {
             {{ t('common.cancel') }}
           </Button>
           <Button type="submit" :disabled="isSubmitting">
+            <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
             {{ t('common.save') }}
           </Button>
         </div>
@@ -350,12 +431,16 @@ onMounted(() => {
             <p class="font-medium">{{ selectedCar.name }}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">{{ t('vehicle.imei') }}</p>
-            <p class="font-mono text-sm">{{ selectedCar.deviceImei }}</p>
+            <p class="text-sm text-muted-foreground">{{ t('vehicle.carNumber') }}</p>
+            <p class="font-mono text-sm">{{ selectedCar.carNumber || '-' }}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">{{ t('vehicle.model') }}</p>
-            <p class="font-medium">{{ selectedCar.deviceModel || '-' }}</p>
+            <p class="text-sm text-muted-foreground">{{ t('nav.devices') }}</p>
+            <p class="font-mono text-sm">{{ selectedCar.device ? `${selectedCar.device.imei} (${selectedCar.device.model})` : '-' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-muted-foreground">{{ t('vehicle.driver') }}</p>
+            <p class="font-medium">{{ selectedCar.driver?.fullName || '-' }}</p>
           </div>
           <div>
             <p class="text-sm text-muted-foreground">{{ t('vehicle.createdAt') }}</p>

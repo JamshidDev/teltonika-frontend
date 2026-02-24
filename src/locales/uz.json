@@ -7,6 +7,7 @@
     "login": "Kirish",
     "logout": "Chiqish",
     "username": "Foydalanuvchi nomi",
+    "email": "Login",
     "password": "Parol",
     "loginButton": "Tizimga kirish",
     "loginError": "Login yoki parol noto'g'ri",
@@ -18,7 +19,9 @@
     "events": "Hodisalar",
     "reports": "Hisobotlar",
     "settings": "Sozlamalar",
-    "vehicles": "Transportlar"
+    "vehicles": "Transportlar",
+    "drivers": "Haydovchilar",
+    "devices": "Qurilmalar"
   },
   "sidebar": {
     "vehicles": "Transport vositalari",
@@ -26,7 +29,11 @@
     "online": "Onlayn",
     "offline": "Oflayn",
     "all": "Barchasi",
-    "noVehicles": "Transport topilmadi"
+    "noVehicles": "Transport topilmadi",
+    "live": "Jonli",
+    "stopped": "To'xtagan",
+    "scheduled": "Rejali",
+    "history": "Tarix"
   },
   "vehicle": {
     "speed": "Tezlik",
@@ -43,6 +50,9 @@
     "mileage": "Yurgan masofa",
     "address": "Manzil",
     "name": "Nomi",
+    "carNumber": "Davlat raqami",
+    "selectDevice": "Qurilma tanlang",
+    "selectDriver": "Haydovchi tanlang",
     "imei": "IMEI",
     "model": "Model",
     "brand": "Brend",
@@ -114,6 +124,42 @@
     "units": "O'lchov birliklari",
     "timezone": "Vaqt mintaqasi"
   },
+  "driver": {
+    "title": "Haydovchilar",
+    "add": "Haydovchi qo'shish",
+    "edit": "Haydovchini tahrirlash",
+    "delete": "Haydovchini o'chirish",
+    "fullName": "To'liq ism",
+    "phone": "Telefon",
+    "licenseNumber": "Guvohnoma raqami",
+    "createdAt": "Sana",
+    "addDescription": "Tizimga yangi haydovchi qo'shish",
+    "editDescription": "Haydovchi ma'lumotlarini tahrirlash",
+    "deleteConfirm": "Haqiqatan ham bu haydovchini o'chirmoqchimisiz?",
+    "createSuccess": "Haydovchi muvaffaqiyatli yaratildi",
+    "updateSuccess": "Haydovchi muvaffaqiyatli yangilandi",
+    "deleteSuccess": "Haydovchi muvaffaqiyatli o'chirildi",
+    "noDrivers": "Haydovchilar topilmadi",
+    "fullNamePlaceholder": "To'liq ismni kiriting",
+    "phonePlaceholder": "+998901234567",
+    "licensePlaceholder": "AA1234567"
+  },
+  "device": {
+    "title": "Qurilmalar",
+    "add": "Qurilma qo'shish",
+    "edit": "Qurilmani tahrirlash",
+    "delete": "Qurilmani o'chirish",
+    "imei": "IMEI",
+    "model": "Model",
+    "createdAt": "Sana",
+    "deleteConfirm": "Haqiqatan ham bu qurilmani o'chirmoqchimisiz?",
+    "createSuccess": "Qurilma muvaffaqiyatli yaratildi",
+    "updateSuccess": "Qurilma muvaffaqiyatli yangilandi",
+    "deleteSuccess": "Qurilma muvaffaqiyatli o'chirildi",
+    "noDevices": "Qurilmalar topilmadi",
+    "imeiPlaceholder": "352094087318660",
+    "modelPlaceholder": "FMB120"
+  },
   "common": {
     "loading": "Yuklanmoqda...",
     "error": "Xatolik yuz berdi",
@@ -129,7 +175,10 @@
     "noData": "Ma'lumot yo'q",
     "total": "Jami",
     "pageSize": "Sahifada",
-    "preview": "Ko'rish"
+    "preview": "Ko'rish",
+    "page": "Sahifa",
+    "actions": "Amallar",
+    "comingSoon": "Tez orada ishga tushadi"
   },
   "time": {
     "now": "hozir",

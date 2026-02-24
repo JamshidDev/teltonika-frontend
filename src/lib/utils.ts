@@ -9,32 +9,39 @@ export function cn(...inputs: ClassValue[]) {
 // Timezone constant
 const TIMEZONE = 'Asia/Tashkent'
 
-// Format date to Asia/Tashkent timezone
-export function formatDate(dateString: string, locale: string = 'uz'): string {
+// Format date to Asia/Tashkent timezone (DD.MM.YYYY format)
+export function formatDate(dateString: string, _locale?: string): string {
   const date = new Date(dateString)
-  const localeCode = locale === 'uz' ? 'uz-UZ' : locale === 'ru' ? 'ru-RU' : 'en-US'
 
-  return date.toLocaleDateString(localeCode, {
+  const formatter = new Intl.DateTimeFormat('ru-RU', {
     timeZone: TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
     day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
   })
+
+  return formatter.format(date)
 }
 
-// Format datetime to Asia/Tashkent timezone
-export function formatDateTime(dateString: string, locale: string = 'uz'): string {
+// Format datetime to Asia/Tashkent timezone (DD.MM.YYYY HH:mm format)
+export function formatDateTime(dateString: string, _locale?: string): string {
   const date = new Date(dateString)
-  const localeCode = locale === 'uz' ? 'uz-UZ' : locale === 'ru' ? 'ru-RU' : 'en-US'
 
-  return date.toLocaleString(localeCode, {
+  const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
     timeZone: TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
     day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+
+  const timeFormatter = new Intl.DateTimeFormat('ru-RU', {
+    timeZone: TIMEZONE,
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   })
+
+  return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`
 }
 
 // Format time only to Asia/Tashkent timezone

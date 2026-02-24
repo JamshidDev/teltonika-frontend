@@ -19,8 +19,9 @@ export const useCarsStore = defineStore('cars', () => {
     return cars.value.filter(
       (c) =>
         c.name.toLowerCase().includes(query) ||
-        c.deviceImei.includes(query) ||
-        c.deviceModel?.toLowerCase().includes(query)
+        c.carNumber?.toLowerCase().includes(query) ||
+        c.device?.imei.includes(query) ||
+        c.driver?.fullName.toLowerCase().includes(query)
     )
   })
 

@@ -6,6 +6,7 @@ import i18n from './i18n'
 
 // Import global styles
 import './style.css'
+import 'vue-sonner/style.css'
 
 // Create Vue app
 const app = createApp(App)

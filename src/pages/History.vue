@@ -17,6 +17,7 @@ import {
   FlameKindling,
   Filter,
   Eye,
+  Loader2,
 } from 'lucide-vue-next'
 import type { HistoryPosition, PaginationMeta, Car } from '@/types'
 
@@ -154,16 +155,26 @@ onMounted(() => {
     </div>
 
     <!-- Table -->
-    <Card class="flex-1 overflow-hidden flex flex-col">
+    <Card class="flex-1 overflow-hidden flex flex-col relative">
+      <!-- Loading overlay -->
+      <div
+        v-if="loading"
+        class="absolute inset-0 bg-background/60 z-10 flex items-center justify-center"
+      >
+        <div class="flex flex-col items-center gap-2">
+          <Loader2 class="h-8 w-8 animate-spin text-primary" />
+          <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
+        </div>
+      </div>
+
       <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead class="bg-muted sticky top-0">
+          <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-12">#</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.name') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.driver') }}</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.imei') }}</th>
-              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Latitude</th>
-              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Longitude</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.speed') }}</th>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Ignition</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('history.recordedAt') }}</th>
@@ -183,12 +194,18 @@ onMounted(() => {
                 {{ pos.carName }}
               </td>
               <td class="px-3 py-1.5">
-                <Badge variant="secondary" class="font-mono text-xs">
-                  {{ pos.deviceImei }}
-                </Badge>
+                <span v-if="pos.driver" class="text-sm">{{ pos.driver.fullName }}</span>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
-              <td class="px-3 py-1.5 font-mono text-xs">{{ pos.latitude.toFixed(6) }}</td>
-              <td class="px-3 py-1.5 font-mono text-xs">{{ pos.longitude.toFixed(6) }}</td>
+              <td class="px-3 py-1.5">
+                <div v-if="pos.device">
+                  <Badge variant="secondary" class="font-mono text-xs">
+                    {{ pos.device.imei }}
+                  </Badge>
+                  <div class="text-[10px] text-muted-foreground">{{ pos.device.model }}</div>
+                </div>
+                <span v-else class="text-muted-foreground">-</span>
+              </td>
               <td class="px-3 py-1.5">
                 <span :class="pos.speed > 0 ? 'text-green-600' : 'text-muted-foreground'">
                   {{ pos.speed }} km/h
@@ -221,14 +238,6 @@ onMounted(() => {
           class="flex items-center justify-center py-8 text-muted-foreground text-sm"
         >
           {{ t('common.noData') }}
-        </div>
-
-        <!-- Loading state -->
-        <div
-          v-if="loading"
-          class="flex items-center justify-center py-8 text-muted-foreground text-sm"
-        >
-          {{ t('common.loading') }}
         </div>
       </div>
 
@@ -296,16 +305,18 @@ onMounted(() => {
             <p class="font-medium">{{ selectedPosition.carName }}</p>
           </div>
           <div>
+            <p class="text-sm text-muted-foreground">{{ t('vehicle.driver') }}</p>
+            <p class="font-medium">{{ selectedPosition.driver?.fullName || '-' }}</p>
+            <p v-if="selectedPosition.driver" class="text-xs text-muted-foreground">{{ selectedPosition.driver.phone }}</p>
+          </div>
+          <div>
             <p class="text-sm text-muted-foreground">{{ t('vehicle.imei') }}</p>
-            <p class="font-mono text-sm">{{ selectedPosition.deviceImei }}</p>
+            <p class="font-mono text-sm">{{ selectedPosition.device?.imei || '-' }}</p>
+            <p v-if="selectedPosition.device" class="text-xs text-muted-foreground">{{ selectedPosition.device.model }}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Latitude</p>
-            <p class="font-mono text-sm">{{ selectedPosition.latitude }}</p>
-          </div>
-          <div>
-            <p class="text-sm text-muted-foreground">Longitude</p>
-            <p class="font-mono text-sm">{{ selectedPosition.longitude }}</p>
+            <p class="text-sm text-muted-foreground">Koordinatalar</p>
+            <p class="font-mono text-sm">{{ selectedPosition.latitude }}, {{ selectedPosition.longitude }}</p>
           </div>
           <div>
             <p class="text-sm text-muted-foreground">{{ t('vehicle.speed') }}</p>

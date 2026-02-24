@@ -7,6 +7,7 @@
     "login": "Login",
     "logout": "Logout",
     "username": "Username",
+    "email": "Email",
     "password": "Password",
     "loginButton": "Sign In",
     "loginError": "Invalid username or password",
@@ -18,7 +19,9 @@
     "events": "Events",
     "reports": "Reports",
     "settings": "Settings",
-    "vehicles": "Vehicles"
+    "vehicles": "Vehicles",
+    "drivers": "Drivers",
+    "devices": "Devices"
   },
   "sidebar": {
     "vehicles": "Vehicles",
@@ -26,7 +29,11 @@
     "online": "Online",
     "offline": "Offline",
     "all": "All",
-    "noVehicles": "No vehicles found"
+    "noVehicles": "No vehicles found",
+    "live": "Live",
+    "stopped": "Stopped",
+    "scheduled": "Scheduled",
+    "history": "History"
   },
   "vehicle": {
     "speed": "Speed",
@@ -43,6 +50,9 @@
     "mileage": "Mileage",
     "address": "Address",
     "name": "Name",
+    "carNumber": "Plate Number",
+    "selectDevice": "Select device",
+    "selectDriver": "Select driver",
     "imei": "IMEI",
     "model": "Model",
     "brand": "Brand",
@@ -114,6 +124,42 @@
     "units": "Units",
     "timezone": "Timezone"
   },
+  "driver": {
+    "title": "Drivers",
+    "add": "Add Driver",
+    "edit": "Edit Driver",
+    "delete": "Delete Driver",
+    "fullName": "Full Name",
+    "phone": "Phone",
+    "licenseNumber": "License Number",
+    "createdAt": "Created At",
+    "addDescription": "Add a new driver to the system",
+    "editDescription": "Edit driver information",
+    "deleteConfirm": "Are you sure you want to delete this driver?",
+    "createSuccess": "Driver created successfully",
+    "updateSuccess": "Driver updated successfully",
+    "deleteSuccess": "Driver deleted successfully",
+    "noDrivers": "No drivers found",
+    "fullNamePlaceholder": "Enter full name",
+    "phonePlaceholder": "+998901234567",
+    "licensePlaceholder": "AA1234567"
+  },
+  "device": {
+    "title": "Devices",
+    "add": "Add Device",
+    "edit": "Edit Device",
+    "delete": "Delete Device",
+    "imei": "IMEI",
+    "model": "Model",
+    "createdAt": "Date",
+    "deleteConfirm": "Are you sure you want to delete this device?",
+    "createSuccess": "Device created successfully",
+    "updateSuccess": "Device updated successfully",
+    "deleteSuccess": "Device deleted successfully",
+    "noDevices": "No devices found",
+    "imeiPlaceholder": "352094087318660",
+    "modelPlaceholder": "FMB120"
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
@@ -129,7 +175,10 @@
     "noData": "No data",
     "total": "Total",
     "pageSize": "Per page",
-    "preview": "Preview"
+    "preview": "Preview",
+    "page": "Page",
+    "actions": "Actions",
+    "comingSoon": "Coming soon"
   },
   "time": {
     "now": "now",

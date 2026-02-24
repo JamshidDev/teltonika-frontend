@@ -7,6 +7,7 @@
     "login": "Вход",
     "logout": "Выход",
     "username": "Имя пользователя",
+    "email": "Email",
     "password": "Пароль",
     "loginButton": "Войти в систему",
     "loginError": "Неверный логин или пароль",
@@ -18,7 +19,9 @@
     "events": "События",
     "reports": "Отчёты",
     "settings": "Настройки",
-    "vehicles": "Транспорт"
+    "vehicles": "Транспорт",
+    "drivers": "Водители",
+    "devices": "Устройства"
   },
   "sidebar": {
     "vehicles": "Транспортные средства",
@@ -26,7 +29,11 @@
     "online": "Онлайн",
     "offline": "Офлайн",
     "all": "Все",
-    "noVehicles": "Транспорт не найден"
+    "noVehicles": "Транспорт не найден",
+    "live": "Онлайн",
+    "stopped": "Остановлен",
+    "scheduled": "По расписанию",
+    "history": "История"
   },
   "vehicle": {
     "speed": "Скорость",
@@ -43,6 +50,9 @@
     "mileage": "Пробег",
     "address": "Адрес",
     "name": "Название",
+    "carNumber": "Гос. номер",
+    "selectDevice": "Выберите устройство",
+    "selectDriver": "Выберите водителя",
     "imei": "IMEI",
     "model": "Модель",
     "brand": "Марка",
@@ -114,6 +124,42 @@
     "units": "Единицы измерения",
     "timezone": "Часовой пояс"
   },
+  "driver": {
+    "title": "Водители",
+    "add": "Добавить водителя",
+    "edit": "Редактировать водителя",
+    "delete": "Удалить водителя",
+    "fullName": "ФИО",
+    "phone": "Телефон",
+    "licenseNumber": "Номер лицензии",
+    "createdAt": "Дата создания",
+    "addDescription": "Добавить нового водителя в систему",
+    "editDescription": "Редактировать информацию о водителе",
+    "deleteConfirm": "Вы уверены, что хотите удалить этого водителя?",
+    "createSuccess": "Водитель успешно создан",
+    "updateSuccess": "Водитель успешно обновлён",
+    "deleteSuccess": "Водитель успешно удалён",
+    "noDrivers": "Водители не найдены",
+    "fullNamePlaceholder": "Введите ФИО",
+    "phonePlaceholder": "+998901234567",
+    "licensePlaceholder": "AA1234567"
+  },
+  "device": {
+    "title": "Устройства",
+    "add": "Добавить устройство",
+    "edit": "Редактировать устройство",
+    "delete": "Удалить устройство",
+    "imei": "IMEI",
+    "model": "Модель",
+    "createdAt": "Дата",
+    "deleteConfirm": "Вы уверены, что хотите удалить это устройство?",
+    "createSuccess": "Устройство успешно создано",
+    "updateSuccess": "Устройство успешно обновлено",
+    "deleteSuccess": "Устройство успешно удалено",
+    "noDevices": "Устройства не найдены",
+    "imeiPlaceholder": "352094087318660",
+    "modelPlaceholder": "FMB120"
+  },
   "common": {
     "loading": "Загрузка...",
     "error": "Произошла ошибка",
@@ -129,7 +175,10 @@
     "noData": "Нет данных",
     "total": "Всего",
     "pageSize": "На странице",
-    "preview": "Просмотр"
+    "preview": "Просмотр",
+    "page": "Страница",
+    "actions": "Действия",
+    "comingSoon": "Скоро будет доступно"
   },
   "time": {
     "now": "сейчас",

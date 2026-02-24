@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useUiStore } from '@/stores/ui.store'
 import { formatRelativeTime, formatSpeed } from '@/lib/utils'
-import { Car, Gauge, LocateFixed } from 'lucide-vue-next'
+import { Gauge, LocateFixed } from 'lucide-vue-next'
+import carIcon from '@/assets/car-icon.svg'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -86,25 +87,18 @@ function showRouteCustom() {
 <template>
   <div
     :class="[
-      'p-3 cursor-pointer hover:bg-accent transition-colors',
-      isSelected && 'bg-accent',
+      'p-2 cursor-pointer hover:bg-accent transition-colors border border-border rounded-lg',
+      isSelected && 'bg-accent border-primary',
     ]"
     @click="selectVehicle"
   >
     <!-- Collapsed view -->
     <div v-if="collapsed" class="flex justify-center">
-      <Car
-        :class="[
-          'h-6 w-6',
-          status === 'online' || status === 'moving'
-            ? 'text-green-500'
-            : 'text-muted-foreground',
-        ]"
-      />
+      <img :src="carIcon" alt="car" class="h-5 w-5" />
     </div>
 
     <!-- Expanded view -->
-    <div v-else class="flex items-start gap-3">
+    <div v-else class="flex items-center gap-2">
       <!-- Icon -->
       <div class="flex-shrink-0">
         <div
@@ -115,31 +109,24 @@ function showRouteCustom() {
               : 'bg-gray-100 dark:bg-gray-800',
           ]"
         >
-          <Car
-            :class="[
-              'h-5 w-5',
-              status === 'online' || status === 'moving'
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-gray-500',
-            ]"
-          />
+          <img :src="carIcon" alt="car" class="h-6 w-6" />
         </div>
       </div>
 
       <!-- Info -->
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between">
-          <h3 class="font-medium text-foreground truncate">
+          <h3 class="text-xs font-medium text-foreground truncate">
             {{ vehicle.name }}
           </h3>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <button
-                class="p-1 rounded hover:bg-background transition-colors"
+                class="p-0.5 rounded hover:bg-background transition-colors"
                 :title="t('nav.history')"
                 @click.stop
               >
-                <LocateFixed class="h-4 w-4 text-muted-foreground hover:text-primary" />
+                <LocateFixed class="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" class="w-56">
@@ -179,22 +166,18 @@ function showRouteCustom() {
           </DropdownMenu>
         </div>
 
-        <p class="text-sm text-muted-foreground truncate font-mono text-xs">
-          {{ vehicle.deviceImei }}
-        </p>
-
-        <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center justify-between">
           <!-- Speed -->
           <div class="flex items-center gap-1">
             <Gauge
               :class="[
-                'h-3.5 w-3.5',
+                'h-3 w-3',
                 speed > 0 ? 'text-green-600' : 'text-muted-foreground',
               ]"
             />
             <span
               :class="[
-                'font-medium text-[10px]',
+                'font-medium text-[9px]',
                 speed > 0 ? 'text-green-600' : 'text-muted-foreground',
               ]"
             >
@@ -203,7 +186,7 @@ function showRouteCustom() {
           </div>
 
           <!-- Last update -->
-          <span class="text-[10px] text-muted-foreground">
+          <span class="text-[9px] text-muted-foreground">
             {{ lastUpdate }}
           </span>
         </div>

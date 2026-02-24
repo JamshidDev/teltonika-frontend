@@ -21,22 +21,40 @@ export interface Car {
   id: number
   userId: number
   name: string
-  deviceImei: string
-  deviceModel: string | null
+  carNumber: string | null
   createdAt: string
+  updatedAt: string
+  device: {
+    id: number
+    imei: string
+    model: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  } | null
+  driver: {
+    id: number
+    fullName: string
+    phone: string
+    licenseNumber: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  } | null
 }
 
 export interface CreateCarDto {
-  userId: number
   name: string
-  deviceImei: string
-  deviceModel?: string
+  carNumber: string
+  deviceId?: number
+  driverId?: number
 }
 
 export interface UpdateCarDto {
   name?: string
-  deviceImei?: string
-  deviceModel?: string
+  carNumber?: string
+  deviceId?: number
+  driverId?: number
 }
 
 // Vehicle with last position (from API)
@@ -75,7 +93,6 @@ export interface HistoryPosition {
   id: number
   carId: number
   carName: string
-  deviceImei: string
   latitude: number
   longitude: number
   speed: number
@@ -85,6 +102,16 @@ export interface HistoryPosition {
   rawIo?: Record<string, number>
   recordedAt: string
   createdAt: string
+  device: {
+    id: number
+    imei: string
+    model: string
+  } | null
+  driver: {
+    id: number
+    fullName: string
+    phone: string
+  } | null
 }
 
 // Route point type (for route line on map)

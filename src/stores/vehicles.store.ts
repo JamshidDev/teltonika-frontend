@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { carsApi } from '@/api/cars'
+import { toast } from 'vue-sonner'
 import type { VehicleWithPosition, PaginationMeta, RoutePoint } from '@/types'
 
 export const useVehiclesStore = defineStore('vehicles', () => {
@@ -27,13 +28,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   })
 
   const filteredVehicles = computed(() => {
-    if (!searchQuery.value) return vehicles.value
+    if (!searchQuery.value.trim()) return vehicles.value
 
-    const query = searchQuery.value.toLowerCase()
+    const query = searchQuery.value.toLowerCase().trim()
     return vehicles.value.filter(
       (v) =>
-        v.name.toLowerCase().includes(query) ||
-        v.deviceImei.includes(query)
+        v.name?.toLowerCase().includes(query) ||
+        v.deviceImei?.toLowerCase().includes(query)
     )
   })
 
@@ -154,6 +155,12 @@ export const useVehiclesStore = defineStore('vehicles', () => {
 
     try {
       const points = await carsApi.getHistoryRoute({ carId, from, to })
+      if (points.length === 0) {
+        toast.warning('Bu vaqt oralig\'ida ma\'lumot topilmadi')
+        routeCarId.value = null
+        routeFrom.value = null
+        routeTo.value = null
+      }
       routePoints.value = points
     } catch (err) {
       console.error('Failed to fetch route:', err)

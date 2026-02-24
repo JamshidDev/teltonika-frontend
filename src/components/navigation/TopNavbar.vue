@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MapPin, User, LogOut, Moon, Sun, Settings } from 'lucide-vue-next'
+import { User, LogOut, Moon, Sun, Settings } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -32,12 +32,9 @@ function goToSettings() {
   <header
     class="h-14 bg-background border-b border-border flex items-center justify-between px-4 z-40"
   >
-    <!-- Logo -->
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-        <MapPin class="h-5 w-5 text-primary-foreground" />
-      </div>
-      <span class="font-bold text-lg text-foreground">{{ t('app.title') }}</span>
+    <!-- Title -->
+    <div class="flex items-center">
+      <span class="font-semibold text-lg text-foreground">{{ t('app.title') }}</span>
     </div>
 
     <!-- Right side actions -->

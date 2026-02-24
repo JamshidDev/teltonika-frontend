@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 import { useVehiclesStore } from '@/stores/vehicles.store'
-import { useUiStore, type TabType } from '@/stores/ui.store'
 import VehicleItem from './VehicleItem.vue'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,54 +12,38 @@ import {
 } from '@/components/ui/tooltip'
 import {
   Search,
-  ChevronLeft,
-  ChevronRight,
-  LayoutDashboard,
-  History,
-  Bell,
-  FileText,
-  Car,
   Loader2,
+  Radio,
+  CircleStop,
+  CalendarClock,
+  History,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
 const vehiclesStore = useVehiclesStore()
-const uiStore = useUiStore()
+
+// Tabs
+type SidebarTab = 'live' | 'stopped' | 'scheduled' | 'history'
+const activeTab = ref<SidebarTab>('live')
+const isBodyCollapsed = ref(false)
+
+const tabs = computed(() => [
+  { key: 'live' as SidebarTab, label: t('sidebar.live'), icon: Radio },
+  { key: 'stopped' as SidebarTab, label: t('sidebar.stopped'), icon: CircleStop },
+  { key: 'scheduled' as SidebarTab, label: t('sidebar.scheduled'), icon: CalendarClock },
+  { key: 'history' as SidebarTab, label: t('sidebar.history'), icon: History },
+])
 
 const vehicles = computed(() => vehiclesStore.filteredVehicles)
 
-// Navigation items
-const navItems = computed(() => [
-  { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/dashboard' },
-  { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles' },
-  { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history' },
-  { key: 'events' as TabType, label: t('nav.events'), icon: Bell, route: '/events' },
-  { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports' },
-])
+const localSearchQuery = ref('')
 
-const activeTab = computed(() => {
-  const path = route.path
-  if (path.includes('vehicles')) return 'vehicles'
-  if (path.includes('history')) return 'history'
-  if (path.includes('events')) return 'events'
-  if (path.includes('reports')) return 'reports'
-  if (path.includes('settings')) return 'settings'
-  return 'dashboard'
-})
-
-function handleSearch(value: string | number) {
-  vehiclesStore.setSearchQuery(String(value))
-}
-
-function toggleCollapse() {
-  uiStore.toggleSidebarCollapse()
-}
-
-function navigateTo(item: (typeof navItems.value)[0]) {
-  uiStore.setSelectedTab(item.key)
-  router.push(item.route)
+function handleSearch(event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  localSearchQuery.value = value
+  vehiclesStore.setSearchQuery(value)
 }
 
 // Infinite scroll
@@ -81,96 +63,103 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside
-    :class="[
-      'h-full bg-background border-r border-border flex flex-col transition-all duration-300',
-      uiStore.sidebarCollapsed ? 'w-16' : 'w-80',
-    ]"
-  >
-    <!-- Header with Search -->
-    <div class="p-3 border-b border-border flex items-center gap-2">
-      <div v-if="!uiStore.sidebarCollapsed" class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          :model-value="vehiclesStore.searchQuery"
-          :placeholder="t('sidebar.search')"
-          class="pl-9"
-          @update:model-value="handleSearch"
-        />
-      </div>
-      <button
-        class="p-1.5 rounded-md hover:bg-accent transition-colors flex-shrink-0"
-        @click="toggleCollapse"
-      >
-        <ChevronLeft v-if="!uiStore.sidebarCollapsed" class="h-5 w-5" />
-        <ChevronRight v-else class="h-5 w-5" />
-      </button>
-    </div>
-
-    <!-- Loading state -->
-    <div
-      v-if="vehiclesStore.loading"
-      class="flex-1 flex items-center justify-center"
-    >
-      <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
-    </div>
-
-    <!-- Vehicles List -->
-    <div
-      v-else
-      class="flex-1 overflow-y-auto"
-      @scroll="handleScroll"
-    >
-      <div v-if="vehicles.length === 0" class="p-4 text-center text-muted-foreground">
-        <span v-if="!uiStore.sidebarCollapsed">{{ t('sidebar.noVehicles') }}</span>
-      </div>
-      <div v-else class="divide-y divide-border">
-        <VehicleItem
-          v-for="vehicle in vehicles"
-          :key="vehicle.carId"
-          :vehicle="vehicle"
-          :collapsed="uiStore.sidebarCollapsed"
-        />
-      </div>
-
-      <!-- Load more indicator -->
-      <div
-        v-if="vehiclesStore.loadingMore"
-        class="py-3 flex items-center justify-center"
-      >
-        <Loader2 class="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    </div>
-
-    <!-- Bottom Navigation -->
-    <nav class="border-t border-border p-2">
-      <TooltipProvider>
-        <div
-          :class="[
-            'flex gap-1',
-            uiStore.sidebarCollapsed ? 'flex-col items-center' : 'justify-center',
-          ]"
-        >
-          <Tooltip v-for="item in navItems" :key="item.key">
+  <aside class="w-80 h-full bg-background flex flex-col">
+    <!-- Header with Tabs -->
+    <div class="border-b border-border">
+      <TooltipProvider :delay-duration="0">
+        <div class="flex">
+          <Tooltip v-for="tab in tabs" :key="tab.key">
             <TooltipTrigger as-child>
               <button
                 :class="[
-                  'p-2.5 rounded-lg transition-colors',
-                  activeTab === item.key
-                    ? 'text-primary bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+                  'flex-1 py-3 flex items-center justify-center transition-colors border-b-2',
+                  activeTab === tab.key
+                    ? 'text-primary border-primary'
+                    : 'text-muted-foreground hover:text-foreground border-transparent',
                 ]"
-                @click="navigateTo(item)"
+                @click="activeTab = tab.key"
               >
-                <component :is="item.icon" class="h-5 w-5" />
+                <component :is="tab.icon" class="h-5 w-5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent :side="uiStore.sidebarCollapsed ? 'right' : 'top'">
-              {{ item.label }}
+            <TooltipContent side="bottom">
+              {{ tab.label }}
             </TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
-    </nav>
+    </div>
+
+    <!-- Body -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Coming Soon for non-live tabs -->
+      <div v-if="activeTab !== 'live'" class="flex-1 flex items-center justify-center p-4">
+        <div class="text-center text-muted-foreground">
+          <div class="text-4xl mb-3">🚧</div>
+          <p class="text-sm">{{ t('common.comingSoon') }}</p>
+        </div>
+      </div>
+
+      <!-- Live tab content -->
+      <template v-else>
+        <!-- Search -->
+        <div class="p-3 flex items-center gap-2">
+          <div class="relative flex-1">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              v-model="localSearchQuery"
+              :placeholder="t('sidebar.search')"
+              class="pl-9 shadow-none"
+              @input="handleSearch"
+              @focus="isBodyCollapsed && (isBodyCollapsed = false)"
+            />
+          </div>
+          <button
+            class="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
+            @click="isBodyCollapsed = !isBodyCollapsed"
+          >
+            <ChevronUp v-if="!isBodyCollapsed" class="h-4 w-4 text-muted-foreground" />
+            <ChevronDown v-else class="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <!-- Collapsible body -->
+        <template v-if="!isBodyCollapsed">
+          <!-- Loading state -->
+          <div
+            v-if="vehiclesStore.loading"
+            class="flex-1 flex items-center justify-center"
+          >
+            <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+
+          <!-- Vehicles List -->
+          <div
+            v-else
+            class="flex-1 overflow-y-auto"
+            @scroll="handleScroll"
+          >
+            <div v-if="vehicles.length === 0" class="p-4 text-center text-muted-foreground">
+              {{ t('sidebar.noVehicles') }}
+            </div>
+            <div v-else class="flex flex-col gap-2 p-2">
+              <VehicleItem
+                v-for="vehicle in vehicles"
+                :key="vehicle.carId"
+                :vehicle="vehicle"
+              />
+            </div>
+
+            <!-- Load more indicator -->
+            <div
+              v-if="vehiclesStore.loadingMore"
+              class="py-3 flex items-center justify-center"
+            >
+              <Loader2 class="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          </div>
+        </template>
+      </template>
+    </div>
   </aside>
 </template>

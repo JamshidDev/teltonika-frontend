@@ -175,8 +175,19 @@ function initMap() {
 function updateMarkers() {
   if (!map.value || !markersLayer.value) return
 
-  // Check if we're showing a route for a vehicle
-  const routeCarId = vehiclesStore.routeCarId
+  // Hide all markers when route is showing
+  if (vehiclesStore.routePoints.length > 0) {
+    markers.value.forEach((marker) => {
+      try {
+        marker.off()
+        marker.remove()
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    })
+    markers.value.clear()
+    return
+  }
 
   vehiclesWithPositions.value.forEach((vehicle) => {
     if (vehicle.lat === null || vehicle.lng === null) return
@@ -184,20 +195,6 @@ function updateMarkers() {
     const existingMarker = markers.value.get(vehicle.carId)
     const position: L.LatLngExpression = [vehicle.lat, vehicle.lng]
     const angle = vehicle.angle || 0
-
-    // Hide marker if this vehicle's route is being shown
-    if (routeCarId === vehicle.carId && vehiclesStore.routePoints.length > 0) {
-      if (existingMarker) {
-        try {
-          existingMarker.off()
-          existingMarker.remove()
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-        markers.value.delete(vehicle.carId)
-      }
-      return
-    }
 
     if (existingMarker) {
       existingMarker.setLatLng(position)
@@ -519,8 +516,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Route Info Card -->
-    <div v-if="hasRoute" class="absolute right-4 z-[1000]" style="top: 4rem;">
-      <div class="bg-background rounded-lg shadow-lg min-w-[220px] overflow-hidden border border-border">
+    <div v-if="hasRoute" class="absolute left-[340px] top-5 z-[1000]">
+      <div class="bg-background rounded-xl shadow-lg min-w-[220px] overflow-hidden border border-border">
         <!-- Vehicle name -->
         <div class="font-medium text-foreground px-3 py-2 border-b border-border">
           {{ vehiclesStore.routeVehicleName }}
@@ -528,11 +525,11 @@ onUnmounted(() => {
 
         <!-- Date range -->
         <div class="text-xs text-muted-foreground px-3 py-2 border-b border-border space-y-1">
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-4">
             <span>{{ t('history.from') }}:</span>
             <span class="font-medium text-foreground">{{ formatRouteDate(vehiclesStore.routeFrom) }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-4">
             <span>{{ t('history.to') }}:</span>
             <span class="font-medium text-foreground">{{ formatRouteDate(vehiclesStore.routeTo) }}</span>
           </div>
