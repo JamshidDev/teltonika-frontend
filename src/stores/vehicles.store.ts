@@ -9,6 +9,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   const vehicles = ref<VehicleWithPosition[]>([])
   const meta = ref<PaginationMeta | null>(null)
   const selectedVehicleId = ref<number | null>(null)
+  const followedVehicleId = ref<number | null>(null)
   const loading = ref(false)
   const loadingMore = ref(false)
   const error = ref<string | null>(null)
@@ -25,6 +26,11 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   const selectedVehicle = computed(() => {
     if (!selectedVehicleId.value) return null
     return vehicles.value.find((v) => v.carId === selectedVehicleId.value) || null
+  })
+
+  const followedVehicle = computed(() => {
+    if (!followedVehicleId.value) return null
+    return vehicles.value.find((v) => v.carId === followedVehicleId.value) || null
   })
 
   const filteredVehicles = computed(() => {
@@ -119,6 +125,14 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     selectedVehicleId.value = vehicleId
   }
 
+  function followVehicle(vehicleId: number): void {
+    followedVehicleId.value = vehicleId
+  }
+
+  function unfollowVehicle(): void {
+    followedVehicleId.value = null
+  }
+
   function setSearchQuery(query: string): void {
     searchQuery.value = query
   }
@@ -183,6 +197,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     vehicles,
     meta,
     selectedVehicleId,
+    followedVehicleId,
     loading,
     loadingMore,
     error,
@@ -195,6 +210,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     routeVehicleName,
     // Getters
     selectedVehicle,
+    followedVehicle,
     filteredVehicles,
     onlineVehicles,
     offlineVehicles,
@@ -208,6 +224,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     fetchVehicles,
     loadMore,
     selectVehicle,
+    followVehicle,
+    unfollowVehicle,
     setSearchQuery,
     updateVehiclePosition,
     fetchRoute,

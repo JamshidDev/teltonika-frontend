@@ -78,7 +78,10 @@
     "street": "Ko'cha xaritasi",
     "traffic": "Tirbandlik",
     "fullscreen": "To'liq ekran",
-    "clearRoute": "Yo'lni tozalash"
+    "clearRoute": "Yo'lni tozalash",
+    "follow": "Kuzatish",
+    "unfollow": "Kuzatishni to'xtatish",
+    "following": "Kuzatilmoqda"
   },
   "history": {
     "title": "Harakat tarixi",

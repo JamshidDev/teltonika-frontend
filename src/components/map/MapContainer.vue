@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Layers, Plus, Minus, Locate, X, Loader2 } from 'lucide-vue-next'
+import { Layers, Plus, Minus, Locate, X, Loader2, Navigation, XCircle } from 'lucide-vue-next'
 import carIconUrl from '@/assets/car-icon.svg'
 
 const { t } = useI18n()
@@ -36,6 +36,9 @@ const routeLine = ref<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const routeArrows = ref<any[]>([])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeStartMarker = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const routeEndMarker = ref<any>(null)
 
 const currentTile = ref('osm')
 
@@ -76,15 +79,35 @@ const vehiclesWithPositions = computed(() =>
 // Check if route is showing
 const hasRoute = computed(() => vehiclesStore.routePoints.length > 0)
 
+// Check if follow mode is active
+const isFollowing = computed(() => vehiclesStore.followedVehicleId !== null)
+const followedVehicleName = computed(() => {
+  if (!vehiclesStore.followedVehicleId) return null
+  const vehicle = vehiclesStore.vehicles.find(v => v.carId === vehiclesStore.followedVehicleId)
+  return vehicle?.name || null
+})
+
 // Create marker icon with car icon and rotation
-function createCarIcon(angle: number = 0) {
+function createCarIcon(angle: number = 0, ignition: boolean = false, speed: number = 0, isFollowed: boolean = false) {
+  const rippleHtml = ignition ? `
+        <!-- Ripple effect -->
+        <div class="car-ripple"></div>
+        <div class="car-ripple car-ripple-delay"></div>
+  ` : ''
+
+  const speedBadgeHtml = isFollowed ? `
+        <!-- Speed badge -->
+        <div class="car-speed-badge">
+          ${speed} <span style="font-size: 9px;">km/h</span>
+        </div>
+  ` : ''
+
   return L.divIcon({
     className: 'car-marker',
     html: `
       <div style="position: relative; width: 48px; height: 48px;">
-        <!-- Ripple effect -->
-        <div class="car-ripple"></div>
-        <div class="car-ripple car-ripple-delay"></div>
+        ${rippleHtml}
+        ${speedBadgeHtml}
         <!-- Car icon -->
         <div style="
           position: absolute;
@@ -160,6 +183,11 @@ function initMap() {
     }
   })
 
+  // Show/hide route arrows based on zoom level
+  map.value.on('zoomend', () => {
+    updateRouteArrowsVisibility()
+  })
+
   // Initial markers
   updateMarkers()
 
@@ -195,14 +223,17 @@ function updateMarkers() {
     const existingMarker = markers.value.get(vehicle.carId)
     const position: L.LatLngExpression = [vehicle.lat, vehicle.lng]
     const angle = vehicle.angle || 0
+    const ignition = vehicle.ignition ?? false
+    const speed = vehicle.speed || 0
+    const isFollowed = vehiclesStore.followedVehicleId === vehicle.carId
 
     if (existingMarker) {
       existingMarker.setLatLng(position)
-      // Update icon with new angle
-      existingMarker.setIcon(createCarIcon(angle))
+      // Update icon with new angle, ignition status, speed and follow state
+      existingMarker.setIcon(createCarIcon(angle, ignition, speed, isFollowed))
     } else {
       const marker = L.marker(position, {
-        icon: createCarIcon(angle),
+        icon: createCarIcon(angle, ignition, speed, isFollowed),
         title: vehicle.name,
       })
 
@@ -273,6 +304,25 @@ function createArrowIcon(angle: number) {
   })
 }
 
+// Create route point marker (A for start, B for end)
+function createRoutePointIcon(label: 'A' | 'B') {
+  const color = label === 'A' ? '#22c55e' : '#ef4444' // green for start, red for end
+  return L.divIcon({
+    className: 'route-point-marker',
+    html: `
+      <div class="route-point-icon">
+        <svg width="32" height="44" viewBox="0 0 32 44">
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 8.837 16 28 16 28s16-19.163 16-28C32 7.163 24.837 0 16 0z" fill="${color}"/>
+          <circle cx="16" cy="16" r="10" fill="white" fill-opacity="0.25"/>
+          <text x="16" y="21" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui, sans-serif">${label}</text>
+        </svg>
+      </div>
+    `,
+    iconSize: [32, 44],
+    iconAnchor: [16, 44],
+  })
+}
+
 // Draw route line on map
 function drawRouteLine() {
   if (!map.value) return
@@ -302,17 +352,60 @@ function drawRouteLine() {
   })
   routeArrows.value = []
 
+  // Remove existing start/end markers
+  if (routeStartMarker.value) {
+    try {
+      routeStartMarker.value.off()
+      routeStartMarker.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    routeStartMarker.value = null
+  }
+  if (routeEndMarker.value) {
+    try {
+      routeEndMarker.value.off()
+      routeEndMarker.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    routeEndMarker.value = null
+  }
+
   const points = vehiclesStore.routePoints
   if (points.length === 0) return
 
   // Create polyline from route points
   const latLngs: L.LatLngExpression[] = points.map((p) => [p.lat, p.lng])
 
-  routeLine.value = L.polyline(latLngs, {
-    color: '#3b82f6',
-    weight: 4,
-    opacity: 0.8,
-  }).addTo(map.value)
+  // Only draw line if we have at least 2 points
+  if (latLngs.length >= 2) {
+    routeLine.value = L.polyline(latLngs, {
+      color: '#3b82f6',
+      weight: 5,
+      opacity: 1,
+    }).addTo(map.value)
+  }
+
+  // Add start marker (A) - first point
+  const startPoint = points[0]
+  if (startPoint) {
+    routeStartMarker.value = L.marker([startPoint.lat, startPoint.lng], {
+      icon: createRoutePointIcon('A'),
+      interactive: false,
+      zIndexOffset: 1000,
+    }).addTo(map.value!)
+  }
+
+  // Add end marker (B) - last point (only if different from start)
+  const endPoint = points[points.length - 1]
+  if (endPoint && points.length > 1) {
+    routeEndMarker.value = L.marker([endPoint.lat, endPoint.lng], {
+      icon: createRoutePointIcon('B'),
+      interactive: false,
+      zIndexOffset: 1001,
+    }).addTo(map.value!)
+  }
 
   // Add direction arrows only at significant turns (>25 degrees)
   for (let i = 1; i < points.length - 1; i++) {
@@ -338,6 +431,29 @@ function drawRouteLine() {
     const bounds = L.latLngBounds(latLngs)
     map.value.fitBounds(bounds, { padding: [50, 50] })
   }
+
+  // Update arrows visibility based on current zoom
+  updateRouteArrowsVisibility()
+}
+
+// Update route arrows visibility based on zoom level
+function updateRouteArrowsVisibility() {
+  if (!map.value || routeArrows.value.length === 0) return
+
+  const zoom = map.value.getZoom()
+  const minZoomForArrows = 14 // Arrows visible at zoom 14 and above
+
+  routeArrows.value.forEach((arrow) => {
+    if (zoom >= minZoomForArrows) {
+      // Show arrow
+      const icon = arrow.getElement()
+      if (icon) icon.style.display = ''
+    } else {
+      // Hide arrow
+      const icon = arrow.getElement()
+      if (icon) icon.style.display = 'none'
+    }
+  })
 }
 
 // Clear route line from map
@@ -347,6 +463,7 @@ function clearRouteLine() {
   // Stop any ongoing animations
   map.value.stop()
 
+  // Remove route line
   if (routeLine.value) {
     try {
       routeLine.value.off()
@@ -367,6 +484,26 @@ function clearRouteLine() {
     }
   })
   routeArrows.value = []
+
+  // Remove start/end markers
+  if (routeStartMarker.value) {
+    try {
+      routeStartMarker.value.off()
+      routeStartMarker.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    routeStartMarker.value = null
+  }
+  if (routeEndMarker.value) {
+    try {
+      routeEndMarker.value.off()
+      routeEndMarker.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    routeEndMarker.value = null
+  }
 }
 
 // Watch for route points changes
@@ -405,8 +542,38 @@ watch(
     if ((!oldVehicles || oldVehicles.length === 0) && newVehicles.length > 0) {
       fitAllMarkers()
     }
+
+    // Follow vehicle - center map on followed vehicle when its position changes
+    if (vehiclesStore.followedVehicleId && map.value) {
+      const followedVehicle = newVehicles.find(v => v.carId === vehiclesStore.followedVehicleId)
+      if (followedVehicle?.lat && followedVehicle?.lng) {
+        map.value.setView([followedVehicle.lat, followedVehicle.lng], map.value.getZoom(), {
+          animate: true,
+          duration: 0.5,
+        })
+      }
+    }
   },
   { deep: true }
+)
+
+// Watch for followed vehicle changes - center immediately when follow starts
+watch(
+  () => vehiclesStore.followedVehicleId,
+  (carId) => {
+    // Update markers to show/hide speed badge
+    updateMarkers()
+
+    if (carId && map.value) {
+      const vehicle = vehiclesStore.vehicles.find((v) => v.carId === carId)
+      if (vehicle?.lat && vehicle?.lng) {
+        map.value.setView([vehicle.lat, vehicle.lng], 17, {
+          animate: true,
+          duration: 0.5,
+        })
+      }
+    }
+  }
 )
 
 // Watch dark mode changes
@@ -503,6 +670,35 @@ onUnmounted(() => {
   <div class="relative w-full h-full">
     <!-- Map Container -->
     <div ref="mapContainer" class="absolute inset-0 z-0" />
+
+    <!-- Follow Mode Border Overlay -->
+    <div
+      v-if="isFollowing"
+      class="absolute inset-0 z-[998] pointer-events-none follow-mode-border"
+    />
+
+    <!-- Follow Mode Info Card -->
+    <Transition name="follow-card">
+      <div
+        v-if="isFollowing"
+        class="absolute top-5 left-1/2 -translate-x-1/2 z-[1001]"
+      >
+        <div class="flex items-center gap-3 bg-blue-500 text-white pl-4 pr-2 py-2 rounded-full shadow-lg">
+        <div class="flex items-center gap-2">
+          <Navigation class="h-4 w-4 animate-pulse" />
+          <span class="text-sm font-medium">{{ t('map.following') }}:</span>
+          <span class="text-sm font-bold">{{ followedVehicleName }}</span>
+        </div>
+        <button
+          class="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors pointer-events-auto"
+          :title="t('map.unfollow')"
+          @click="vehiclesStore.unfollowVehicle()"
+        >
+          <XCircle class="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+    </Transition>
 
     <!-- Route Loading Overlay -->
     <div
@@ -617,9 +813,53 @@ onUnmounted(() => {
   border: none;
 }
 
+.route-point-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.route-point-icon {
+  position: relative;
+  width: 32px;
+  height: 44px;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3));
+}
+
+.route-point-icon svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .car-marker {
   background: transparent;
   border: none;
+}
+
+.car-speed-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3b82f6;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  animation: speed-badge-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes speed-badge-pulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
 }
 
 .car-ripple {
@@ -650,5 +890,50 @@ onUnmounted(() => {
     height: 70px;
     opacity: 0;
   }
+}
+
+/* Follow mode border - animated glow effect */
+.follow-mode-border {
+  border: 5px solid #3b82f6;
+  border-radius: 8px;
+  animation: follow-border-glow 2s ease-in-out infinite;
+}
+
+@keyframes follow-border-glow {
+  0%, 100% {
+    border-color: #2563eb;
+    box-shadow:
+      0 0 15px #3b82f6,
+      0 0 30px #3b82f6,
+      0 0 45px rgba(59, 130, 246, 0.6),
+      inset 0 0 40px rgba(59, 130, 246, 0.15);
+  }
+  50% {
+    border-color: #93c5fd;
+    box-shadow:
+      0 0 25px #60a5fa,
+      0 0 50px #3b82f6,
+      0 0 70px rgba(59, 130, 246, 0.8),
+      inset 0 0 60px rgba(59, 130, 246, 0.25);
+  }
+}
+
+/* Follow mode card transition */
+.follow-card-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.follow-card-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.follow-card-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px) scale(0.9);
+}
+
+.follow-card-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px) scale(0.95);
 }
 </style>

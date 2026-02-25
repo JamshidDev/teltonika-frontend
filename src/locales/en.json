@@ -78,7 +78,10 @@
     "street": "Street Map",
     "traffic": "Traffic",
     "fullscreen": "Fullscreen",
-    "clearRoute": "Clear Route"
+    "clearRoute": "Clear Route",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "following": "Following"
   },
   "history": {
     "title": "Movement History",

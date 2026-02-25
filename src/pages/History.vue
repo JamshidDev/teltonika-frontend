@@ -175,7 +175,10 @@ onMounted(() => {
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.name') }}</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.driver') }}</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.imei') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Lat / Long</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.speed') }}</th>
+              <th class="text-right px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Distance</th>
+              <th class="text-right px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Bytes</th>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Ignition</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('history.recordedAt') }}</th>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-16"></th>
@@ -207,9 +210,23 @@ onMounted(() => {
                 <span v-else class="text-muted-foreground">-</span>
               </td>
               <td class="px-3 py-1.5">
+                <div class="font-mono text-xs">
+                  <div>{{ pos.latitude.toFixed(6) }}</div>
+                  <div class="text-muted-foreground">{{ pos.longitude.toFixed(6) }}</div>
+                </div>
+              </td>
+              <td class="px-3 py-1.5">
                 <span :class="pos.speed > 0 ? 'text-green-600' : 'text-muted-foreground'">
                   {{ pos.speed }} km/h
                 </span>
+              </td>
+              <td class="px-3 py-1.5 text-right font-mono text-xs">
+                <span v-if="pos.distanceFromPrev != null">{{ pos.distanceFromPrev.toFixed(2) }} m</span>
+                <span v-else class="text-muted-foreground">-</span>
+              </td>
+              <td class="px-3 py-1.5 text-right font-mono text-xs">
+                <span v-if="pos.bytesReceived != null">{{ pos.bytesReceived }}</span>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
               <td class="px-3 py-1.5 text-center">
                 <div class="flex justify-center">
@@ -347,6 +364,16 @@ onMounted(() => {
           <div>
             <p class="text-sm text-muted-foreground">{{ t('vehicle.createdAt') }}</p>
             <p class="font-medium">{{ formatDateTime(selectedPosition.createdAt, uiStore.language) }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-muted-foreground">Distance from Prev</p>
+            <p class="font-medium font-mono">
+              {{ selectedPosition.distanceFromPrev != null ? selectedPosition.distanceFromPrev.toFixed(2) + ' m' : '-' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-muted-foreground">Bytes Received</p>
+            <p class="font-medium font-mono">{{ selectedPosition.bytesReceived ?? '-' }}</p>
           </div>
         </div>
 

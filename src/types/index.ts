@@ -99,6 +99,8 @@ export interface HistoryPosition {
   angle: number
   satellites: number
   ignition: boolean
+  bytesReceived?: number
+  distanceFromPrev?: number
   rawIo?: Record<string, number>
   recordedAt: string
   createdAt: string

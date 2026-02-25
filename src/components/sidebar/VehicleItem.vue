@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useUiStore } from '@/stores/ui.store'
 import { formatRelativeTime, formatSpeed } from '@/lib/utils'
-import { Gauge, LocateFixed } from 'lucide-vue-next'
+import { Gauge, LocateFixed, Navigation } from 'lucide-vue-next'
 import carIcon from '@/assets/car-icon.svg'
 import {
   DropdownMenu,
@@ -27,6 +27,10 @@ const uiStore = useUiStore()
 
 const isSelected = computed(
   () => vehiclesStore.selectedVehicleId === props.vehicle.carId
+)
+
+const isFollowing = computed(
+  () => vehiclesStore.followedVehicleId === props.vehicle.carId
 )
 
 const status = computed(() => vehiclesStore.getVehicleStatus(props.vehicle))
@@ -82,6 +86,14 @@ function showRouteCustom() {
   vehiclesStore.fetchRoute(props.vehicle.carId, from.toISOString(), to.toISOString())
 }
 
+function toggleFollow() {
+  if (isFollowing.value) {
+    vehiclesStore.unfollowVehicle()
+  } else {
+    vehiclesStore.followVehicle(props.vehicle.carId)
+  }
+}
+
 </script>
 
 <template>
@@ -119,7 +131,22 @@ function showRouteCustom() {
           <h3 class="text-xs font-medium text-foreground truncate">
             {{ vehicle.name }}
           </h3>
-          <DropdownMenu>
+          <div class="flex items-center gap-1">
+            <!-- Follow button -->
+            <button
+              :class="[
+                'p-0.5 rounded transition-colors',
+                isFollowing
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-background'
+              ]"
+              :title="isFollowing ? t('map.unfollow') : t('map.follow')"
+              @click.stop="toggleFollow"
+            >
+              <Navigation :class="['h-3.5 w-3.5', isFollowing ? '' : 'text-muted-foreground hover:text-primary']" />
+            </button>
+            <!-- Route button -->
+            <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <button
                 class="p-0.5 rounded hover:bg-background transition-colors"
@@ -163,7 +190,8 @@ function showRouteCustom() {
                 </button>
               </div>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div class="flex items-center justify-between">
