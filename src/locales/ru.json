@@ -21,7 +21,9 @@
     "settings": "Настройки",
     "vehicles": "Транспорт",
     "drivers": "Водители",
-    "devices": "Устройства"
+    "devices": "Устройства",
+    "stopEvents": "Остановки",
+    "engineEvents": "Двигатель"
   },
   "sidebar": {
     "vehicles": "Транспортные средства",
@@ -31,9 +33,11 @@
     "all": "Все",
     "noVehicles": "Транспорт не найден",
     "live": "Онлайн",
+    "motion": "Статус",
     "stopped": "Остановлен",
     "scheduled": "По расписанию",
-    "history": "История"
+    "history": "История",
+    "noMotionEvents": "Нет данных о статусе"
   },
   "vehicle": {
     "speed": "Скорость",
@@ -189,5 +193,42 @@
     "minutes": "мин. назад",
     "hours": "ч. назад",
     "days": "дн. назад"
+  },
+  "stopEvents": {
+    "title": "События остановок",
+    "selectCar": "Выберите транспорт",
+    "allCars": "Все транспорты",
+    "date": "Дата",
+    "selectDate": "Выберите дату",
+    "vehicle": "Транспорт",
+    "type": "Тип",
+    "startTime": "Время начала",
+    "endTime": "Время окончания",
+    "duration": "Длительность",
+    "location": "Местоположение",
+    "parking": "Парковка",
+    "stop": "Остановка",
+    "ongoing": "Продолжается"
+  },
+  "engineEvents": {
+    "title": "События двигателя",
+    "selectCar": "Выберите транспорт",
+    "allCars": "Все транспорты",
+    "date": "Дата",
+    "selectDate": "Выберите дату",
+    "vehicle": "Транспорт",
+    "status": "Статус",
+    "time": "Время",
+    "location": "Местоположение",
+    "on": "Включён",
+    "off": "Выключён"
+  },
+  "motion": {
+    "moving": "В движении",
+    "stop_candidate": "Замедляется",
+    "stopped": "Остановлен",
+    "parking_candidate": "Двигатель выкл",
+    "parking": "Парковка",
+    "minutes": "мин"
   }
 }

@@ -139,3 +139,52 @@ export interface PaginatedResponse<T> {
   data: T[]
   meta: PaginationMeta
 }
+
+// Stop Event types
+export interface StopEvent {
+  id: number
+  carId: number
+  carName: string
+  carNumber: string | null
+  type: 'parking' | 'stop' | 'PARKING' | 'STOP'
+  startAt: string
+  endAt: string | null
+  durationSeconds: number | null
+  latitude: number
+  longitude: number
+}
+
+// Engine Event types
+export interface EngineEvent {
+  id: number
+  carId: number
+  carName: string
+  carNumber: string | null
+  eventType: 'on' | 'off'
+  eventAt: string
+  latitude: number
+  longitude: number
+}
+
+// Socket.IO Event types
+export type MotionStatus = 'moving' | 'stop_candidate' | 'stopped' | 'parking_candidate' | 'parking'
+
+export interface CarLocationEvent {
+  carId: number
+  lat: number
+  lng: number
+  speed: number | null
+  angle: number | null
+  ignition: boolean | null
+  movement: boolean | null
+}
+
+export interface CarMotionEvent {
+  carId: number
+  carName: string
+  carNumber: string | null
+  status: MotionStatus
+  since: string
+  lat: number
+  lng: number
+}

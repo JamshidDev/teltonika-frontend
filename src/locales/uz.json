@@ -21,7 +21,9 @@
     "settings": "Sozlamalar",
     "vehicles": "Transportlar",
     "drivers": "Haydovchilar",
-    "devices": "Qurilmalar"
+    "devices": "Qurilmalar",
+    "stopEvents": "To'xtashlar",
+    "engineEvents": "Dvigatel"
   },
   "sidebar": {
     "vehicles": "Transport vositalari",
@@ -31,9 +33,11 @@
     "all": "Barchasi",
     "noVehicles": "Transport topilmadi",
     "live": "Jonli",
+    "motion": "Holat",
     "stopped": "To'xtagan",
     "scheduled": "Rejali",
-    "history": "Tarix"
+    "history": "Tarix",
+    "noMotionEvents": "Holat ma'lumotlari yo'q"
   },
   "vehicle": {
     "speed": "Tezlik",
@@ -189,5 +193,42 @@
     "minutes": "daqiqa oldin",
     "hours": "soat oldin",
     "days": "kun oldin"
+  },
+  "stopEvents": {
+    "title": "To'xtash hodisalari",
+    "selectCar": "Transport tanlang",
+    "allCars": "Barcha transportlar",
+    "date": "Sana",
+    "selectDate": "Sana tanlang",
+    "vehicle": "Transport",
+    "type": "Turi",
+    "startTime": "Boshlanish vaqti",
+    "endTime": "Tugash vaqti",
+    "duration": "Davomiyligi",
+    "location": "Joylashuv",
+    "parking": "Parkovka",
+    "stop": "To'xtash",
+    "ongoing": "Davom etmoqda"
+  },
+  "engineEvents": {
+    "title": "Dvigatel hodisalari",
+    "selectCar": "Transport tanlang",
+    "allCars": "Barcha transportlar",
+    "date": "Sana",
+    "selectDate": "Sana tanlang",
+    "vehicle": "Transport",
+    "status": "Holat",
+    "time": "Vaqt",
+    "location": "Joylashuv",
+    "on": "Yoqildi",
+    "off": "O'chirildi"
+  },
+  "motion": {
+    "moving": "Harakatda",
+    "stop_candidate": "Sekinlashdi",
+    "stopped": "To'xtagan",
+    "parking_candidate": "Dvigatel o'chdi",
+    "parking": "Parking",
+    "minutes": "daq"
   }
 }

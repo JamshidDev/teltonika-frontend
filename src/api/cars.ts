@@ -1,5 +1,5 @@
 import api from './axios'
-import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint } from '@/types'
+import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent } from '@/types'
 
 export interface CarsQueryParams {
   page?: number
@@ -23,6 +23,20 @@ export interface HistoryRouteParams {
   carId: number
   from: string
   to: string
+}
+
+export interface StopEventsParams {
+  page?: number
+  pageSize?: number
+  carId?: number
+  date?: string
+}
+
+export interface EngineEventsParams {
+  page?: number
+  pageSize?: number
+  carId?: number
+  date?: string
 }
 
 // Cars API endpoints
@@ -71,6 +85,18 @@ export const carsApi = {
   // Get route points for drawing on map
   async getHistoryRoute(params: HistoryRouteParams): Promise<RoutePoint[]> {
     const response = await api.get<RoutePoint[]>('/history/route', { params })
+    return response.data
+  },
+
+  // Get stop events (parking/stops)
+  async getStopEvents(params?: StopEventsParams): Promise<PaginatedResponse<StopEvent>> {
+    const response = await api.get<PaginatedResponse<StopEvent>>('/stop-events', { params })
+    return response.data
+  },
+
+  // Get engine events (on/off)
+  async getEngineEvents(params?: EngineEventsParams): Promise<PaginatedResponse<EngineEvent>> {
+    const response = await api.get<PaginatedResponse<EngineEvent>>('/engine-events', { params })
     return response.data
   },
 }

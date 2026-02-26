@@ -98,10 +98,8 @@ function toggleFollow() {
 
 <template>
   <div
-    :class="[
-      'p-2 cursor-pointer hover:bg-accent transition-colors border border-border rounded-lg',
-      isSelected && 'bg-accent border-primary',
-    ]"
+    class="p-2 cursor-pointer hover:bg-accent transition-colors rounded-lg border border-border"
+    :style="isSelected ? { borderLeftWidth: '6px', borderLeftColor: '#3b82f6', backgroundColor: 'hsl(var(--accent))' } : {}"
     @click="selectVehicle"
   >
     <!-- Collapsed view -->

@@ -170,7 +170,7 @@ onMounted(() => {
       <!-- Table content -->
       <div class="flex-1 overflow-auto">
         <table class="w-full table-fixed">
-          <thead class="bg-muted/50 sticky top-0 z-[5]">
+          <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
               <th class="text-left px-4 py-3 font-medium text-sm w-[80px] min-w-[80px]">ID</th>
               <th class="text-left px-4 py-3 font-medium text-sm">{{ t('driver.fullName') }}</th>

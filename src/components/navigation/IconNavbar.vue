@@ -19,6 +19,8 @@ import {
   FileText,
   Settings,
   MapPin,
+  ParkingCircle,
+  Power,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -33,6 +35,8 @@ const navItems = computed(() => [
   { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers' },
   { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices' },
   { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history' },
+  { key: 'stop-events' as TabType, label: t('nav.stopEvents'), icon: ParkingCircle, route: '/stop-events' },
+  { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events' },
   { key: 'events' as TabType, label: t('nav.events'), icon: Bell, route: '/events' },
   { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports' },
 ])
@@ -47,6 +51,8 @@ const activeTab = computed(() => {
   if (path.includes('drivers')) return 'drivers'
   if (path.includes('devices')) return 'devices'
   if (path.includes('history')) return 'history'
+  if (path.includes('stop-events')) return 'stop-events'
+  if (path.includes('engine-events')) return 'engine-events'
   if (path.includes('events')) return 'events'
   if (path.includes('reports')) return 'reports'
   if (path.includes('settings')) return 'settings'

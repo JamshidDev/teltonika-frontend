@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'events' | 'reports' | 'settings'
+export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'events' | 'reports' | 'settings' | 'stop-events' | 'engine-events'
 export type Language = 'uz' | 'ru' | 'en'
 
 export const useUiStore = defineStore('ui', () => {

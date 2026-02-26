@@ -21,7 +21,9 @@
     "settings": "Settings",
     "vehicles": "Vehicles",
     "drivers": "Drivers",
-    "devices": "Devices"
+    "devices": "Devices",
+    "stopEvents": "Stops",
+    "engineEvents": "Engine"
   },
   "sidebar": {
     "vehicles": "Vehicles",
@@ -31,9 +33,11 @@
     "all": "All",
     "noVehicles": "No vehicles found",
     "live": "Live",
+    "motion": "Status",
     "stopped": "Stopped",
     "scheduled": "Scheduled",
-    "history": "History"
+    "history": "History",
+    "noMotionEvents": "No status data"
   },
   "vehicle": {
     "speed": "Speed",
@@ -189,5 +193,42 @@
     "minutes": "min ago",
     "hours": "hr ago",
     "days": "days ago"
+  },
+  "stopEvents": {
+    "title": "Stop Events",
+    "selectCar": "Select Vehicle",
+    "allCars": "All Vehicles",
+    "date": "Date",
+    "selectDate": "Select date",
+    "vehicle": "Vehicle",
+    "type": "Type",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "duration": "Duration",
+    "location": "Location",
+    "parking": "Parking",
+    "stop": "Stop",
+    "ongoing": "Ongoing"
+  },
+  "engineEvents": {
+    "title": "Engine Events",
+    "selectCar": "Select Vehicle",
+    "allCars": "All Vehicles",
+    "date": "Date",
+    "selectDate": "Select date",
+    "vehicle": "Vehicle",
+    "status": "Status",
+    "time": "Time",
+    "location": "Location",
+    "on": "On",
+    "off": "Off"
+  },
+  "motion": {
+    "moving": "Moving",
+    "stop_candidate": "Slowing down",
+    "stopped": "Stopped",
+    "parking_candidate": "Engine off",
+    "parking": "Parking",
+    "minutes": "min"
   }
 }

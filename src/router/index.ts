@@ -57,6 +57,16 @@ const routes: RouteRecordRaw[] = [
         name: 'devices',
         component: () => import('@/pages/Devices.vue'),
       },
+      {
+        path: 'stop-events',
+        name: 'stop-events',
+        component: () => import('@/pages/StopEvents.vue'),
+      },
+      {
+        path: 'engine-events',
+        name: 'engine-events',
+        component: () => import('@/pages/EngineEvents.vue'),
+      },
     ],
   },
   {

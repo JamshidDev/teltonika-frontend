@@ -228,7 +228,7 @@ onMounted(() => {
 
       <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead class="bg-muted/50 sticky top-0 z-[5]">
+          <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-12">#</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.name') }}</th>

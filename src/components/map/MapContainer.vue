@@ -304,9 +304,19 @@ function createArrowIcon(angle: number) {
   })
 }
 
+// Format time for marker display
+function formatMarkerTime(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleTimeString('uz-UZ', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 // Create route point marker (A for start, B for end)
-function createRoutePointIcon(label: 'A' | 'B') {
+function createRoutePointIcon(label: 'A' | 'B', time: string) {
   const color = label === 'A' ? '#22c55e' : '#ef4444' // green for start, red for end
+  const formattedTime = formatMarkerTime(time)
   return L.divIcon({
     className: 'route-point-marker',
     html: `
@@ -316,9 +326,10 @@ function createRoutePointIcon(label: 'A' | 'B') {
           <circle cx="16" cy="16" r="10" fill="white" fill-opacity="0.25"/>
           <text x="16" y="21" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui, sans-serif">${label}</text>
         </svg>
+        <div class="route-point-time">${formattedTime}</div>
       </div>
     `,
-    iconSize: [32, 44],
+    iconSize: [32, 60],
     iconAnchor: [16, 44],
   })
 }
@@ -391,7 +402,7 @@ function drawRouteLine() {
   const startPoint = points[0]
   if (startPoint) {
     routeStartMarker.value = L.marker([startPoint.lat, startPoint.lng], {
-      icon: createRoutePointIcon('A'),
+      icon: createRoutePointIcon('A', startPoint.recordedAt),
       interactive: false,
       zIndexOffset: 1000,
     }).addTo(map.value!)
@@ -401,7 +412,7 @@ function drawRouteLine() {
   const endPoint = points[points.length - 1]
   if (endPoint && points.length > 1) {
     routeEndMarker.value = L.marker([endPoint.lat, endPoint.lng], {
-      icon: createRoutePointIcon('B'),
+      icon: createRoutePointIcon('B', endPoint.recordedAt),
       interactive: false,
       zIndexOffset: 1001,
     }).addTo(map.value!)
@@ -829,6 +840,20 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.route-point-time {
+  position: absolute;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
 .car-marker {
