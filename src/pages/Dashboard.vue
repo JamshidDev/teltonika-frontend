@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import MapContainer from '@/components/map/MapContainer.vue'
 import VehicleSidebar from '@/components/sidebar/VehicleSidebar.vue'
 import {
@@ -23,8 +24,10 @@ import { Car, Wifi, WifiOff, Gauge, User, LogOut } from 'lucide-vue-next'
 const { t } = useI18n()
 const vehiclesStore = useVehiclesStore()
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 
 const stats = computed(() => vehiclesStore.vehicleStats)
+const mapZoom = computed(() => uiStore.mapZoom)
 
 function handleLogout() {
   authStore.logout()
@@ -37,7 +40,7 @@ function handleLogout() {
     <MapContainer class="absolute inset-0" />
 
     <!-- Vehicle Sidebar - floating card -->
-    <div class="absolute left-5 top-5 z-10 max-h-[70vh]">
+    <div class="absolute left-5 top-5 z-10 h-[calc(100vh-120px)]">
       <VehicleSidebar class="h-full rounded-xl shadow-xl overflow-hidden" />
     </div>
 
@@ -111,6 +114,18 @@ function handleLogout() {
           </TooltipTrigger>
           <TooltipContent side="left">
             {{ t('vehicle.moving') }}: {{ stats.moving }}
+          </TooltipContent>
+        </Tooltip>
+
+        <!-- Zoom Level Indicator -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button class="w-10 h-10 rounded-full bg-background shadow-lg flex items-center justify-center cursor-default">
+              <span class="text-xs font-bold text-muted-foreground">{{ mapZoom }}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {{ t('map.zoom') }}: {{ mapZoom }}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

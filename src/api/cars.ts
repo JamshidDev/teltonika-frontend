@@ -1,5 +1,5 @@
 import api from './axios'
-import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent } from '@/types'
+import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent, RouteWithEventsResponse } from '@/types'
 
 export interface CarsQueryParams {
   page?: number
@@ -37,6 +37,11 @@ export interface EngineEventsParams {
   pageSize?: number
   carId?: number
   date?: string
+}
+
+export interface RouteWithEventsParams {
+  carId: number
+  date: string
 }
 
 // Cars API endpoints
@@ -97,6 +102,12 @@ export const carsApi = {
   // Get engine events (on/off)
   async getEngineEvents(params?: EngineEventsParams): Promise<PaginatedResponse<EngineEvent>> {
     const response = await api.get<PaginatedResponse<EngineEvent>>('/engine-events', { params })
+    return response.data
+  },
+
+  // Get route with events (timeline)
+  async getRouteWithEvents(params: RouteWithEventsParams): Promise<RouteWithEventsResponse> {
+    const response = await api.get<RouteWithEventsResponse>('/history/route-with-events', { params })
     return response.data
   },
 }

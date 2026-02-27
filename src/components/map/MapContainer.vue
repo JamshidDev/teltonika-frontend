@@ -39,6 +39,15 @@ const routeArrows = ref<any[]>([])
 const routeStartMarker = ref<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const routeEndMarker = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const spotMarkerRef = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const spotCircleRef = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const animationLine = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const animationMarker = ref<any>(null)
+const animationFrameId = ref<number | null>(null)
 
 const currentTile = ref('osm')
 
@@ -334,6 +343,284 @@ function createRoutePointIcon(label: 'A' | 'B', time: string) {
   })
 }
 
+// Create spot marker icon (for parking/stop) - teardrop shape
+function createSpotMarkerIcon(type: 'parking' | 'stop', startAt: string, endAt: string) {
+  // Colors matching the sidebar cards
+  const color = type === 'parking' ? '#dc2626' : '#ea580c' // red-600 for parking, orange-600 for stop
+  const label = type === 'parking' ? 'P' : 'S'
+  const startTime = formatMarkerTime(startAt)
+  const endTime = formatMarkerTime(endAt)
+
+  return L.divIcon({
+    className: 'spot-marker',
+    html: `
+      <div class="spot-marker-icon">
+        <svg width="40" height="52" viewBox="0 0 32 44">
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 8.837 16 28 16 28s16-19.163 16-28C32 7.163 24.837 0 16 0z" fill="${color}"/>
+          <circle cx="16" cy="16" r="10" fill="white" fill-opacity="0.25"/>
+          <text x="16" y="21" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui, sans-serif">${label}</text>
+        </svg>
+        <div class="spot-marker-times">
+          <span>${startTime}</span>
+          <span>-</span>
+          <span>${endTime}</span>
+        </div>
+      </div>
+    `,
+    iconSize: [40, 70],
+    iconAnchor: [20, 52],
+  })
+}
+
+// Draw spot marker on map
+function drawSpotMarker() {
+  if (!map.value) return
+
+  // Clear existing spot marker
+  clearSpotMarker()
+
+  const spot = vehiclesStore.spotMarker
+  if (!spot) return
+
+  // Circle color based on type
+  const circleColor = spot.type === 'parking' ? '#dc2626' : '#ea580c'
+
+  // Draw circle first (50m radius)
+  spotCircleRef.value = L.circle([spot.lat, spot.lng], {
+    radius: 50, // 50 meters
+    color: circleColor,
+    fillColor: circleColor,
+    fillOpacity: 0.15,
+    weight: 2,
+    opacity: 0.6,
+  }).addTo(map.value)
+
+  // Draw marker on top
+  spotMarkerRef.value = L.marker([spot.lat, spot.lng], {
+    icon: createSpotMarkerIcon(spot.type, spot.startAt, spot.endAt),
+    zIndexOffset: 1000,
+  }).addTo(map.value)
+
+  // Center map on spot marker
+  map.value.setView([spot.lat, spot.lng], 17, {
+    animate: true,
+    duration: 0.5,
+  })
+}
+
+// Clear spot marker from map
+function clearSpotMarker() {
+  // Clear circle
+  if (spotCircleRef.value) {
+    try {
+      spotCircleRef.value.off()
+      spotCircleRef.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    spotCircleRef.value = null
+  }
+
+  // Clear marker
+  if (spotMarkerRef.value) {
+    try {
+      spotMarkerRef.value.off()
+      spotMarkerRef.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    spotMarkerRef.value = null
+  }
+}
+
+// Create animated car marker
+function createAnimatedCarIcon(angle: number) {
+  return L.divIcon({
+    className: 'animated-car-marker',
+    html: `
+      <div style="
+        position: relative;
+        width: 40px;
+        height: 40px;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(${angle}deg);
+          width: 32px;
+          height: 32px;
+        ">
+          <img src="${carIconUrl}" width="32" height="32" style="display: block;" />
+        </div>
+      </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+  })
+}
+
+// Start route animation
+function startRouteAnimation() {
+  if (!map.value) return
+
+  const points = vehiclesStore.routePoints
+  if (points.length < 2) return
+
+  // Clear any existing animation
+  stopRouteAnimation()
+
+  // Dim the static route line
+  if (routeLine.value) {
+    routeLine.value.setStyle({ opacity: 0.5, weight: 4 })
+  }
+
+  // Hide arrow markers during animation
+  routeArrows.value.forEach((arrow) => {
+    const icon = arrow.getElement()
+    if (icon) icon.style.display = 'none'
+  })
+
+  // Create animated line (starts empty) - brighter and thicker
+  animationLine.value = L.polyline([], {
+    color: '#22c55e',
+    weight: 7,
+    opacity: 0.9,
+  }).addTo(map.value)
+
+  // Create moving car marker
+  const startPoint = points[0]
+  animationMarker.value = L.marker([startPoint.lat, startPoint.lng], {
+    icon: createAnimatedCarIcon(startPoint.angle || 0),
+    zIndexOffset: 2000,
+  }).addTo(map.value)
+
+  // Calculate cumulative distances for each point
+  const distances: number[] = [0]
+  let totalDistance = 0
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1]
+    const curr = points[i]
+    const segmentDistance = Math.sqrt(
+      Math.pow((curr.lat - prev.lat) * 111000, 2) + // ~111km per degree latitude
+      Math.pow((curr.lng - prev.lng) * 111000 * Math.cos(curr.lat * Math.PI / 180), 2)
+    )
+    totalDistance += segmentDistance
+    distances.push(totalDistance)
+  }
+
+  // Animation settings
+  const animationDuration = 30000 // 30 seconds for entire route
+  const animationStartTime = performance.now()
+  const animatedPoints: L.LatLngExpression[] = [[startPoint.lat, startPoint.lng]]
+  let lastPointIndex = 0
+
+  function animate(currentTime: number) {
+    const elapsed = currentTime - animationStartTime
+    const progress = Math.min(1, elapsed / animationDuration)
+    const currentDistance = progress * totalDistance
+
+    // Find which segment we're on
+    let segmentIndex = 0
+    for (let i = 1; i < distances.length; i++) {
+      if (distances[i] >= currentDistance) {
+        segmentIndex = i - 1
+        break
+      }
+      segmentIndex = i - 1
+    }
+
+    // Add passed points to animated line
+    while (lastPointIndex < segmentIndex) {
+      lastPointIndex++
+      animatedPoints.push([points[lastPointIndex].lat, points[lastPointIndex].lng])
+    }
+
+    // Calculate position within current segment
+    const segmentStart = distances[segmentIndex]
+    const segmentEnd = distances[segmentIndex + 1] || totalDistance
+    const segmentLength = segmentEnd - segmentStart
+    const segmentProgress = segmentLength > 0 ? (currentDistance - segmentStart) / segmentLength : 0
+
+    const currentPoint = points[segmentIndex]
+    const nextPoint = points[segmentIndex + 1] || currentPoint
+
+    // Interpolate position
+    const interpolatedLat = currentPoint.lat + (nextPoint.lat - currentPoint.lat) * segmentProgress
+    const interpolatedLng = currentPoint.lng + (nextPoint.lng - currentPoint.lng) * segmentProgress
+
+    // Interpolate angle
+    let angleDiff = (nextPoint.angle || 0) - (currentPoint.angle || 0)
+    if (angleDiff > 180) angleDiff -= 360
+    if (angleDiff < -180) angleDiff += 360
+    const interpolatedAngle = (currentPoint.angle || 0) + angleDiff * segmentProgress
+
+    // Update car marker
+    if (animationMarker.value) {
+      animationMarker.value.setLatLng([interpolatedLat, interpolatedLng])
+      animationMarker.value.setIcon(createAnimatedCarIcon(interpolatedAngle))
+    }
+
+    // Update animated line with interpolated position
+    const linePoints = [...animatedPoints, [interpolatedLat, interpolatedLng] as L.LatLngExpression]
+    animationLine.value?.setLatLngs(linePoints)
+
+    // Continue animation if not finished
+    if (progress < 1) {
+      animationFrameId.value = requestAnimationFrame(animate)
+    } else {
+      // Animation finished
+      vehiclesStore.stopRouteAnimation()
+    }
+  }
+
+  // Start animation
+  animationFrameId.value = requestAnimationFrame(animate)
+}
+
+// Stop route animation
+function stopRouteAnimation() {
+  // Cancel animation frame
+  if (animationFrameId.value) {
+    cancelAnimationFrame(animationFrameId.value)
+    animationFrameId.value = null
+  }
+
+  // Remove animated line
+  if (animationLine.value) {
+    try {
+      animationLine.value.off()
+      animationLine.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    animationLine.value = null
+  }
+
+  // Remove animated car marker
+  if (animationMarker.value) {
+    try {
+      animationMarker.value.off()
+      animationMarker.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    animationMarker.value = null
+  }
+
+  // Restore static route line to original style
+  if (routeLine.value) {
+    routeLine.value.setStyle({ opacity: 1, weight: 5 })
+  }
+
+  // Show arrow markers again
+  routeArrows.value.forEach((arrow) => {
+    const icon = arrow.getElement()
+    if (icon) icon.style.display = ''
+  })
+}
+
 // Draw route line on map
 function drawRouteLine() {
   if (!map.value) return
@@ -452,7 +739,7 @@ function updateRouteArrowsVisibility() {
   if (!map.value || routeArrows.value.length === 0) return
 
   const zoom = map.value.getZoom()
-  const minZoomForArrows = 14 // Arrows visible at zoom 14 and above
+  const minZoomForArrows = 17 // Arrows visible at zoom 17 and above
 
   routeArrows.value.forEach((arrow) => {
     if (zoom >= minZoomForArrows) {
@@ -597,6 +884,27 @@ watch(
   }
 )
 
+// Watch for spot marker changes
+watch(
+  () => vehiclesStore.spotMarker,
+  () => {
+    drawSpotMarker()
+  },
+  { deep: true }
+)
+
+// Watch for route animation state
+watch(
+  () => vehiclesStore.routeAnimating,
+  (animating) => {
+    if (animating) {
+      startRouteAnimation()
+    } else {
+      stopRouteAnimation()
+    }
+  }
+)
+
 onMounted(() => {
   initMap()
 })
@@ -641,6 +949,31 @@ onUnmounted(() => {
       // Ignore cleanup errors
     }
     routeLine.value = null
+  }
+
+  // Clean up animation
+  stopRouteAnimation()
+
+  // Clean up spot marker
+  if (spotMarkerRef.value) {
+    try {
+      spotMarkerRef.value.off()
+      spotMarkerRef.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    spotMarkerRef.value = null
+  }
+
+  // Clean up spot circle
+  if (spotCircleRef.value) {
+    try {
+      spotCircleRef.value.off()
+      spotCircleRef.value.remove()
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    spotCircleRef.value = null
   }
 
   // Clean up markers layer
@@ -722,8 +1055,8 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Route Info Card -->
-    <div v-if="hasRoute" class="absolute left-[340px] top-5 z-[1000]">
+    <!-- Route Info Card - only show for Live tab routes -->
+    <div v-if="hasRoute && vehiclesStore.routeSource === 'live'" class="absolute left-[450px] top-5 z-[1000]">
       <div class="bg-background rounded-xl shadow-lg min-w-[220px] overflow-hidden border border-border">
         <!-- Vehicle name -->
         <div class="font-medium text-foreground px-3 py-2 border-b border-border">
@@ -960,5 +1293,48 @@ onUnmounted(() => {
 .follow-card-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(-10px) scale(0.95);
+}
+
+/* Spot marker styles - teardrop design */
+.spot-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.spot-marker-icon {
+  position: relative;
+  width: 40px;
+  height: 52px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+}
+
+.spot-marker-icon svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.spot-marker-times {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Animated car marker */
+.animated-car-marker {
+  background: transparent !important;
+  border: none !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 </style>

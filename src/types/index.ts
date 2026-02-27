@@ -188,3 +188,45 @@ export interface CarMotionEvent {
   lat: number
   lng: number
 }
+
+// Route with events types
+export interface RouteWithEventsResponse {
+  carId: number
+  date: string
+  totalEvents: number
+  totalRoutePoints: number
+  timeline: TimelineItem[]
+}
+
+export type TimelineItem = TimelineStop | TimelineParking | TimelineRoute
+
+export interface TimelineStop {
+  type: 'stop'
+  lat: number
+  lng: number
+  startAt: string
+  endAt: string
+  duration: number
+}
+
+export interface TimelineParking {
+  type: 'parking'
+  lat: number
+  lng: number
+  startAt: string
+  endAt: string
+  duration: number
+}
+
+export interface TimelineRoute {
+  type: 'route'
+  points: TimelineRoutePoint[]
+}
+
+export interface TimelineRoutePoint {
+  lat: number
+  lng: number
+  speed: number
+  angle: number
+  recordedAt: string
+}

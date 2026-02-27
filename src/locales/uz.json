@@ -35,9 +35,12 @@
     "live": "Jonli",
     "motion": "Holat",
     "stopped": "To'xtagan",
-    "scheduled": "Rejali",
+    "scheduled": "Yo'llar",
     "history": "Tarix",
-    "noMotionEvents": "Holat ma'lumotlari yo'q"
+    "noMotionEvents": "Holat ma'lumotlari yo'q",
+    "selectDateForRoutes": "Yo'llarni ko'rish uchun sana tanlang",
+    "selectCar": "Transport tanlang",
+    "noRouteData": "Bu sana uchun ma'lumot yo'q"
   },
   "vehicle": {
     "speed": "Tezlik",
@@ -185,14 +188,23 @@
     "preview": "Ko'rish",
     "page": "Sahifa",
     "actions": "Amallar",
-    "comingSoon": "Tez orada ishga tushadi"
+    "comingSoon": "Tez orada ishga tushadi",
+    "today": "Bugun",
+    "yesterday": "Kecha"
   },
   "time": {
     "now": "hozir",
     "seconds": "soniya oldin",
     "minutes": "daqiqa oldin",
     "hours": "soat oldin",
-    "days": "kun oldin"
+    "days": "kun oldin",
+    "hourShort": " soat",
+    "minShort": " daq"
+  },
+  "timeline": {
+    "parking": "Parking",
+    "stop": "To'xtash",
+    "route": "Yo'l"
   },
   "stopEvents": {
     "title": "To'xtash hodisalari",

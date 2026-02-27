@@ -21,6 +21,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   const routeCarId = ref<number | null>(null)
   const routeFrom = ref<string | null>(null)
   const routeTo = ref<string | null>(null)
+  const routeSource = ref<'live' | 'scheduled' | null>(null)
+
+  // Spot marker state (for parking/stop)
+  const spotMarker = ref<{ lat: number; lng: number; type: 'parking' | 'stop'; startAt: string; endAt: string } | null>(null)
+
+  // Route animation state
+  const routeAnimating = ref(false)
 
   // Motion state (from socket car:motion events)
   const carMotions = ref<Map<number, CarMotionEvent>>(new Map())
@@ -200,12 +207,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     }
   }
 
-  // Fetch route for drawing on map
+  // Fetch route for drawing on map (from Live tab)
   async function fetchRoute(carId: number, from: string, to: string): Promise<void> {
     routeLoading.value = true
     routeCarId.value = carId
     routeFrom.value = from
     routeTo.value = to
+    routeSource.value = 'live'
 
     try {
       const points = await carsApi.getHistoryRoute({ carId, from, to })
@@ -214,6 +222,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
         routeCarId.value = null
         routeFrom.value = null
         routeTo.value = null
+        routeSource.value = null
       }
       routePoints.value = points
     } catch (err) {
@@ -230,11 +239,51 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     routeCarId.value = null
     routeFrom.value = null
     routeTo.value = null
+    routeSource.value = null
+    routeAnimating.value = false
+  }
+
+  // Set route points directly (for timeline routes from Scheduled tab)
+  function setRoutePoints(points: RoutePoint[], carId?: number): void {
+    routePoints.value = points
+    routeCarId.value = carId || null
+    routeFrom.value = points.length > 0 ? points[0].recordedAt : null
+    routeTo.value = points.length > 0 ? points[points.length - 1].recordedAt : null
+    routeSource.value = 'scheduled'
+    // Clear spot marker when showing route
+    spotMarker.value = null
+  }
+
+  // Show spot marker (for parking/stop)
+  function showSpotMarker(data: { lat: number; lng: number; type: 'parking' | 'stop'; startAt: string; endAt: string }): void {
+    spotMarker.value = data
+    // Clear route when showing spot marker
+    routePoints.value = []
+    routeCarId.value = null
+    routeFrom.value = null
+    routeTo.value = null
+    routeSource.value = null
+  }
+
+  // Clear spot marker
+  function clearSpotMarker(): void {
+    spotMarker.value = null
   }
 
   // Update car motion status from socket
   function updateCarMotion(data: CarMotionEvent): void {
     carMotions.value.set(data.carId, data)
+  }
+
+  // Start route animation
+  function startRouteAnimation(): void {
+    if (routePoints.value.length < 2) return
+    routeAnimating.value = true
+  }
+
+  // Stop route animation
+  function stopRouteAnimation(): void {
+    routeAnimating.value = false
   }
 
   return {
@@ -252,8 +301,11 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     routeCarId,
     routeFrom,
     routeTo,
+    routeSource,
     routeVehicleName,
     carMotions,
+    spotMarker,
+    routeAnimating,
     // Getters
     selectedVehicle,
     followedVehicle,
@@ -279,5 +331,10 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     updateCarMotion,
     fetchRoute,
     clearRoute,
+    setRoutePoints,
+    showSpotMarker,
+    clearSpotMarker,
+    startRouteAnimation,
+    stopRouteAnimation,
   }
 })

@@ -35,9 +35,12 @@
     "live": "Live",
     "motion": "Status",
     "stopped": "Stopped",
-    "scheduled": "Scheduled",
+    "scheduled": "Routes",
     "history": "History",
-    "noMotionEvents": "No status data"
+    "noMotionEvents": "No status data",
+    "selectDateForRoutes": "Select a date to view routes",
+    "selectCar": "Select a vehicle",
+    "noRouteData": "No route data for this date"
   },
   "vehicle": {
     "speed": "Speed",
@@ -185,14 +188,23 @@
     "preview": "Preview",
     "page": "Page",
     "actions": "Actions",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "time": {
     "now": "now",
     "seconds": "sec ago",
     "minutes": "min ago",
     "hours": "hr ago",
-    "days": "days ago"
+    "days": "days ago",
+    "hourShort": " hr",
+    "minShort": " min"
+  },
+  "timeline": {
+    "parking": "Parking",
+    "stop": "Stop",
+    "route": "Route"
   },
   "stopEvents": {
     "title": "Stop Events",
