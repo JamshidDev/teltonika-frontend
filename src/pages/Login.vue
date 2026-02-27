@@ -27,28 +27,19 @@ async function handleSubmit() {
   })
 }
 
-// Testimonial carousel
+// Testimonial carousel — horizontal slide
 const activeTestimonial = ref(0)
-const testimonials = [
-  {
-    text: 'Real-time vehicle tracking has transformed our fleet management. We reduced fuel costs by 23% in the first month.',
-    author: 'Fleet Manager',
-  },
-  {
-    text: 'The route history and stop detection features help us optimize delivery schedules and improve customer satisfaction.',
-    author: 'Logistics Director',
-  },
-  {
-    text: 'Simple, intuitive interface. Our drivers adapted quickly, and the live monitoring gives us complete visibility.',
-    author: 'Operations Lead',
-  },
+const testimonialKeys = [
+  { text: 'auth.testimonial1', author: 'auth.testimonial1Author' },
+  { text: 'auth.testimonial2', author: 'auth.testimonial2Author' },
+  { text: 'auth.testimonial3', author: 'auth.testimonial3Author' },
 ]
 
 let testimonialInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   testimonialInterval = setInterval(() => {
-    activeTestimonial.value = (activeTestimonial.value + 1) % testimonials.length
+    activeTestimonial.value = (activeTestimonial.value + 1) % testimonialKeys.length
   }, 5000)
 })
 
@@ -78,15 +69,15 @@ onBeforeUnmount(() => {
               <div class="absolute -inset-1 bg-blue-500/20 rounded-2xl blur-sm -z-10"></div>
             </div>
             <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-              GPS Tracking
+              {{ t('app.title') }}
             </h1>
             <p class="text-muted-foreground text-sm mt-0.5">{{ t('app.subtitle') }}</p>
           </div>
 
           <!-- Welcome text -->
           <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-foreground">Welcome back</h2>
-            <p class="text-muted-foreground text-sm mt-1">Log in to GPS Tracking</p>
+            <h2 class="text-2xl font-bold text-foreground">{{ t('auth.welcomeBack') }}</h2>
+            <p class="text-muted-foreground text-sm mt-1">{{ t('auth.loginSubtitle') }}</p>
           </div>
 
           <!-- Login Form -->
@@ -176,34 +167,29 @@ onBeforeUnmount(() => {
 
       <!-- Content -->
       <div class="flex-1 flex flex-col justify-center px-12 xl:px-16 relative z-10">
-        <!-- Testimonial -->
+        <!-- Testimonial — horizontal slide -->
         <div class="mb-10">
-          <div class="relative min-h-[120px]">
-            <TransitionGroup
-              enter-active-class="transition-all duration-500 ease-out"
-              enter-from-class="opacity-0 translate-y-4"
-              enter-to-class="opacity-100 translate-y-0"
-              leave-active-class="transition-all duration-300 ease-in absolute"
-              leave-from-class="opacity-100 translate-y-0"
-              leave-to-class="opacity-0 -translate-y-4"
+          <div class="relative min-h-[140px] overflow-hidden">
+            <div
+              v-for="(tk, i) in testimonialKeys"
+              :key="i"
+              class="absolute inset-0 transition-all duration-500 ease-in-out"
+              :style="{
+                transform: `translateX(${(i - activeTestimonial) * 100}%)`,
+                opacity: i === activeTestimonial ? 1 : 0,
+              }"
             >
-              <div
-                v-for="(testimonial, i) in testimonials"
-                v-show="activeTestimonial === i"
-                :key="i"
-              >
-                <p class="text-2xl xl:text-3xl font-medium text-white leading-relaxed">
-                  "{{ testimonial.text }}"
-                </p>
-                <p class="text-blue-200 mt-4 text-sm">— {{ testimonial.author }}</p>
-              </div>
-            </TransitionGroup>
+              <p class="text-2xl xl:text-3xl font-medium text-white leading-relaxed">
+                "{{ t(tk.text) }}"
+              </p>
+              <p class="text-blue-200 mt-4 text-sm">— {{ t(tk.author) }}</p>
+            </div>
           </div>
 
           <!-- Dots -->
           <div class="flex gap-2 mt-6">
             <button
-              v-for="(_, i) in testimonials"
+              v-for="(_, i) in testimonialKeys"
               :key="i"
               :class="[
                 'w-2.5 h-2.5 rounded-full transition-all duration-300',
@@ -216,40 +202,36 @@ onBeforeUnmount(() => {
 
         <!-- Feature cards -->
         <div class="grid grid-cols-2 gap-4 mt-4">
-          <!-- Card 1: Live Tracking -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <div class="w-10 h-10 rounded-lg bg-green-400/20 flex items-center justify-center mb-3">
               <Navigation class="h-5 w-5 text-green-300" />
             </div>
-            <h3 class="text-white font-semibold text-sm">Live Tracking</h3>
-            <p class="text-blue-200 text-xs mt-1">Real-time GPS monitoring for your entire fleet</p>
+            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureLiveTracking') }}</h3>
+            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureLiveTrackingDesc') }}</p>
           </div>
 
-          <!-- Card 2: Route History -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <div class="w-10 h-10 rounded-lg bg-blue-400/20 flex items-center justify-center mb-3">
               <Route class="h-5 w-5 text-blue-300" />
             </div>
-            <h3 class="text-white font-semibold text-sm">Route History</h3>
-            <p class="text-blue-200 text-xs mt-1">Detailed trip history with stops and events</p>
+            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureRouteHistory') }}</h3>
+            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureRouteHistoryDesc') }}</p>
           </div>
 
-          <!-- Card 3: Fleet Management -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <div class="w-10 h-10 rounded-lg bg-purple-400/20 flex items-center justify-center mb-3">
               <Truck class="h-5 w-5 text-purple-300" />
             </div>
-            <h3 class="text-white font-semibold text-sm">Fleet Management</h3>
-            <p class="text-blue-200 text-xs mt-1">Manage all vehicles from a single dashboard</p>
+            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureFleetManagement') }}</h3>
+            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureFleetManagementDesc') }}</p>
           </div>
 
-          <!-- Card 4: Smart Alerts -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <div class="w-10 h-10 rounded-lg bg-orange-400/20 flex items-center justify-center mb-3">
               <MapPinned class="h-5 w-5 text-orange-300" />
             </div>
-            <h3 class="text-white font-semibold text-sm">Smart Alerts</h3>
-            <p class="text-blue-200 text-xs mt-1">Geofence and motion detection notifications</p>
+            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureSmartAlerts') }}</h3>
+            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureSmartAlertsDesc') }}</p>
           </div>
         </div>
       </div>
@@ -258,7 +240,7 @@ onBeforeUnmount(() => {
       <div class="px-12 pb-6 relative z-10">
         <div class="flex items-center gap-3 text-blue-300/60 text-xs">
           <MapPin class="h-4 w-4" />
-          <span>GPS Tracking — Vehicle Monitoring System</span>
+          <span>{{ t('app.title') }} — {{ t('app.subtitle') }}</span>
         </div>
       </div>
     </div>
