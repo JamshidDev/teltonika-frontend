@@ -41,7 +41,8 @@ export interface EngineEventsParams {
 
 export interface RouteWithEventsParams {
   carId: number
-  date: string
+  from: string
+  to: string
 }
 
 // Cars API endpoints

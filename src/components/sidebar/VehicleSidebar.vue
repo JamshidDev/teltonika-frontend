@@ -38,6 +38,7 @@ import { CalendarDate, type DateValue } from '@internationalized/date'
 import { formatRelativeTime } from '@/lib/utils'
 import { carsApi } from '@/api/cars'
 import type { TimelineItem, RouteWithEventsResponse } from '@/types'
+// import ActivityTimelineChart from './ActivityTimelineChart.vue'
 
 const { t } = useI18n()
 const vehiclesStore = useVehiclesStore()
@@ -157,12 +158,19 @@ const timeline = ref<TimelineItem[]>([])
 const timelineLoading = ref(false)
 const selectedTimelineIndex = ref<number | null>(null)
 
-// Format date to YYYY-MM-DD for API
-function formatDateForApi(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+// Convert local date to UTC ISO string for API
+function toUtcIsoString(date: Date): string {
+  return date.toISOString().replace('.000Z', 'Z')
+}
+
+// Get UTC from/to range for a given local date (00:00:00 - 23:59:59)
+function getUtcDateRange(date: Date): { from: string; to: string } {
+  const from = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0)
+  const to = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59)
+  return {
+    from: toUtcIsoString(from),
+    to: toUtcIsoString(to),
+  }
 }
 
 // Fetch timeline when car or date changes
@@ -172,9 +180,11 @@ async function fetchTimeline() {
   timelineLoading.value = true
   selectedTimelineIndex.value = null // Clear selection when fetching new data
   try {
+    const { from, to } = getUtcDateRange(selectedDate.value)
     const response = await carsApi.getRouteWithEvents({
       carId: selectedScheduledCarId.value,
-      date: formatDateForApi(selectedDate.value),
+      from,
+      to,
     })
     timeline.value = response.timeline
   } catch (err) {
@@ -209,10 +219,16 @@ function formatDuration(seconds: number): string {
   return `${minutes}${t('time.minShort')}`
 }
 
-// Format time from ISO string
+// Format date+time from UTC ISO string to local
 function formatTime(isoString: string): string {
   const date = new Date(isoString)
-  return date.toLocaleTimeString(uiStore.language, { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleString(uiStore.language, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 // Calculate distance between two points using Haversine formula
