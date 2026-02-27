@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import LanguageSwitcher from '@/components/navigation/LanguageSwitcher.vue'
@@ -9,6 +10,8 @@ import { MapPin, User, Lock, Eye, EyeOff, Navigation, Truck, MapPinned, Route } 
 
 const { t } = useI18n()
 const authStore = useAuthStore()
+// Initialize UI store to ensure dark mode class is applied on document
+useUiStore()
 
 const email = ref('')
 const password = ref('')
@@ -49,9 +52,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex">
+  <div class="min-h-screen flex bg-background">
     <!-- Left Column — Login Form -->
-    <div class="w-full lg:w-[45%] flex flex-col relative bg-white">
+    <div class="w-full lg:w-[45%] flex flex-col relative bg-background">
       <!-- Language switcher -->
       <div class="absolute top-5 right-5 z-20">
         <LanguageSwitcher />
@@ -145,7 +148,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Right Column — Showcase (hidden on mobile) -->
-    <div class="hidden lg:flex lg:w-[55%] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex-col relative overflow-hidden">
+    <div class="hidden lg:flex lg:w-[55%] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 dark:from-blue-900 dark:via-blue-950 dark:to-slate-950 flex-col relative overflow-hidden">
       <!-- Background pattern -->
       <div class="absolute inset-0 opacity-10">
         <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 40px 40px;"></div>
