@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { carsApi } from '@/api/cars'
 import { toast } from 'vue-sonner'
-import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent, MotionStatus } from '@/types'
+import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent } from '@/types'
 
 export const useVehiclesStore = defineStore('vehicles', () => {
   // State
@@ -29,8 +29,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   // Route animation state
   const routeAnimating = ref(false)
 
-  // Motion state (from socket car:motion events)
-  const carMotions = ref<Map<number, CarMotionEvent>>(new Map())
+  // Hide all car markers on map (e.g. when on Scheduled/History tab)
+  const markersHidden = ref(false)
 
   // Getters
   const selectedVehicle = computed(() => {
@@ -63,7 +63,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   )
 
   const movingVehicles = computed(() =>
-    vehicles.value.filter((v) => v.movement === true)
+    vehicles.value.filter((v) => v.status === 'moving' || v.status === 'stop_candidate')
   )
 
   const vehicleStats = computed(() => ({
@@ -83,43 +83,6 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     return vehicle?.name || null
   })
 
-  // Get motion status for a car
-  function getCarMotion(carId: number): CarMotionEvent | undefined {
-    return carMotions.value.get(carId)
-  }
-
-  // Get motion status display info
-  function getMotionStatusDisplay(carId: number): {
-    text: string
-    color: string
-    icon: string
-    status: MotionStatus | null
-    since: string | null
-  } {
-    const motion = carMotions.value.get(carId)
-    if (!motion) {
-      return { text: '', color: '', icon: '', status: null, since: null }
-    }
-
-    const duration = Math.floor((Date.now() - new Date(motion.since).getTime()) / 1000)
-    const minutes = Math.floor(duration / 60)
-
-    switch (motion.status) {
-      case 'moving':
-        return { text: 'Harakatda', color: '#22c55e', icon: '🚗', status: motion.status, since: motion.since }
-      case 'stop_candidate':
-        return { text: 'Sekinlashdi', color: '#eab308', icon: '🚗', status: motion.status, since: motion.since }
-      case 'stopped':
-        return { text: `To'xtagan (${minutes} daq)`, color: '#f97316', icon: '⏸️', status: motion.status, since: motion.since }
-      case 'parking_candidate':
-        return { text: "Dvigatel o'chdi", color: '#eab308', icon: '🚗', status: motion.status, since: motion.since }
-      case 'parking':
-        return { text: `Parking (${minutes} daq)`, color: '#ef4444', icon: '🅿️', status: motion.status, since: motion.since }
-      default:
-        return { text: '', color: '', icon: '', status: null, since: null }
-    }
-  }
-
   // Helper functions
   function isOnline(recordedAt: string): boolean {
     const lastUpdate = new Date(recordedAt).getTime()
@@ -130,6 +93,12 @@ export const useVehiclesStore = defineStore('vehicles', () => {
 
   function getVehicleStatus(vehicle: VehicleWithPosition): 'online' | 'offline' | 'moving' | 'stopped' | 'idle' {
     if (!vehicle.recordedAt || !isOnline(vehicle.recordedAt)) return 'offline'
+    // Use API status field if available
+    if (vehicle.status) {
+      if (vehicle.status === 'moving' || vehicle.status === 'stop_candidate') return 'moving'
+      if (vehicle.status === 'stopped' || vehicle.status === 'parking_candidate') return 'stopped'
+      if (vehicle.status === 'parking') return 'stopped'
+    }
     if (vehicle.movement) return 'moving'
     if (vehicle.ignition) return 'idle'
     return 'stopped'
@@ -270,9 +239,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     spotMarker.value = null
   }
 
-  // Update car motion status from socket
+  // Update car motion status from socket — directly update vehicle in list
   function updateCarMotion(data: CarMotionEvent): void {
-    carMotions.value.set(data.carId, data)
+    const vehicle = vehicles.value.find((v) => v.carId === data.carId)
+    if (vehicle) {
+      vehicle.status = data.status
+      vehicle.statusSince = data.since
+    }
   }
 
   // Start route animation
@@ -303,9 +276,9 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     routeTo,
     routeSource,
     routeVehicleName,
-    carMotions,
     spotMarker,
     routeAnimating,
+    markersHidden,
     // Getters
     selectedVehicle,
     followedVehicle,
@@ -318,8 +291,6 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     currentPage,
     // Helper
     getVehicleStatus,
-    getCarMotion,
-    getMotionStatusDisplay,
     // Actions
     fetchVehicles,
     loadMore,

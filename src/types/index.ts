@@ -61,15 +61,18 @@ export interface UpdateCarDto {
 export interface VehicleWithPosition {
   carId: number
   name: string
-  deviceImei: string
-  deviceModel: string | null
+  carNumber: string | null
+  deviceImei?: string
+  deviceModel?: string | null
   lat: number | null
   lng: number | null
   speed: number | null
   angle: number | null
-  ignition: boolean | null
-  movement: boolean | null
+  ignition?: boolean | null
+  movement?: boolean | null
   recordedAt: string | null
+  status: MotionStatus | null
+  statusSince: string | null
 }
 
 // Vehicle types (extended for UI with realtime data)
@@ -93,6 +96,7 @@ export interface HistoryPosition {
   id: number
   carId: number
   carName: string
+  carNumber: string | null
   latitude: number
   longitude: number
   speed: number

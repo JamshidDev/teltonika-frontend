@@ -193,8 +193,11 @@ onMounted(() => {
               <td class="px-3 py-1.5 text-center text-muted-foreground">
                 {{ (currentPage - 1) * pageSize + index + 1 }}
               </td>
-              <td class="px-3 py-1.5 font-medium">
-                {{ pos.carName }}
+              <td class="px-3 py-1.5">
+                <div class="font-medium">{{ pos.carName }}</div>
+                <span v-if="pos.carNumber" class="text-[10px] px-1 py-0.5 bg-muted rounded font-mono text-muted-foreground">
+                  {{ pos.carNumber }}
+                </span>
               </td>
               <td class="px-3 py-1.5">
                 <span v-if="pos.driver" class="text-sm">{{ pos.driver.fullName }}</span>
