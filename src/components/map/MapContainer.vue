@@ -212,8 +212,8 @@ function initMap() {
 function updateMarkers() {
   if (!map.value || !markersLayer.value) return
 
-  // Hide all markers when route is showing
-  if (vehiclesStore.routePoints.length > 0) {
+  // Hide all markers when route is showing or markers are hidden (Scheduled/History tab)
+  if (vehiclesStore.markersHidden || vehiclesStore.routePoints.length > 0) {
     markers.value.forEach((marker) => {
       try {
         marker.off()
@@ -226,8 +226,26 @@ function updateMarkers() {
     return
   }
 
+  // When follow mode is active, remove all markers except the followed vehicle
+  if (vehiclesStore.followedVehicleId) {
+    markers.value.forEach((marker, carId) => {
+      if (carId !== vehiclesStore.followedVehicleId) {
+        try {
+          marker.off()
+          marker.remove()
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        markers.value.delete(carId)
+      }
+    })
+  }
+
   vehiclesWithPositions.value.forEach((vehicle) => {
     if (vehicle.lat === null || vehicle.lng === null) return
+
+    // Skip non-followed vehicles when follow mode is active
+    if (vehiclesStore.followedVehicleId && vehicle.carId !== vehiclesStore.followedVehicleId) return
 
     const existingMarker = markers.value.get(vehicle.carId)
     const position: L.LatLngExpression = [vehicle.lat, vehicle.lng]
@@ -881,6 +899,14 @@ watch(
     if (currentTile.value === 'osm' || currentTile.value === 'carto_dark' || currentTile.value === 'carto_light' || currentTile.value === 'osm_dark') {
       changeTile(isDark ? 'carto_dark' : 'osm')
     }
+  }
+)
+
+// Watch for markersHidden state (tab switching)
+watch(
+  () => vehiclesStore.markersHidden,
+  () => {
+    updateMarkers()
   }
 )
 
