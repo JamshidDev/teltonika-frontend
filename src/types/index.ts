@@ -209,8 +209,8 @@ export interface TimelineStop {
   lat: number
   lng: number
   startAt: string
-  endAt: string
-  duration: number
+  endAt: string | null
+  duration: number | null
 }
 
 export interface TimelineParking {
@@ -218,8 +218,8 @@ export interface TimelineParking {
   lat: number
   lng: number
   startAt: string
-  endAt: string
-  duration: number
+  endAt: string | null
+  duration: number | null
 }
 
 export interface TimelineRoute {

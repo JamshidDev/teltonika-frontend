@@ -220,7 +220,8 @@
   "timeline": {
     "parking": "Parking",
     "stop": "Stop",
-    "route": "Route"
+    "route": "Route",
+    "ongoing": "Ongoing"
   },
   "stopEvents": {
     "title": "Stop Events",
