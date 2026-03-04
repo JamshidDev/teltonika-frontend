@@ -216,8 +216,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
   function setRoutePoints(points: RoutePoint[], carId?: number): void {
     routePoints.value = points
     routeCarId.value = carId || null
-    routeFrom.value = points.length > 0 ? points[0].recordedAt : null
-    routeTo.value = points.length > 0 ? points[points.length - 1].recordedAt : null
+    routeFrom.value = points.length > 0 ? points[0]!.recordedAt : null
+    routeTo.value = points.length > 0 ? points[points.length - 1]!.recordedAt : null
     routeSource.value = 'scheduled'
     // Clear spot marker when showing route
     spotMarker.value = null

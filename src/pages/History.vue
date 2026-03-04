@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Dialog from '@/components/ui/Dialog.vue'
 import { Button } from '@/components/ui/button'
+import SearchableSelect from '@/components/ui/SearchableSelect.vue'
+import type { SelectOption } from '@/components/ui/SearchableSelect.vue'
 import { carsApi } from '@/api/cars'
+import { useCarsStore } from '@/stores/cars.store'
 import { formatDateTime } from '@/lib/utils'
 import { useUiStore } from '@/stores/ui.store'
 import {
@@ -15,24 +18,33 @@ import {
   ChevronRight,
   Flame,
   FlameKindling,
-  Filter,
   Eye,
   Loader2,
+  Car,
 } from 'lucide-vue-next'
-import type { HistoryPosition, PaginationMeta, Car } from '@/types'
+import type { HistoryPosition, PaginationMeta } from '@/types'
 
 const { t } = useI18n()
 const route = useRoute()
 const uiStore = useUiStore()
+const carsStore = useCarsStore()
 
 const positions = ref<HistoryPosition[]>([])
-const cars = ref<Car[]>([])
 const meta = ref<PaginationMeta | null>(null)
 const loading = ref(false)
-const carsLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(Number(localStorage.getItem('history_pageSize')) || 10)
 const selectedCarId = ref<number | null>(null)
+
+// Car options for select
+const carOptions = computed<SelectOption[]>(() =>
+  carsStore.cars.map(car => ({
+    value: car.id,
+    label: car.name,
+    description: car.carNumber || '',
+    icon: Car,
+  }))
+)
 const selectedPosition = ref<HistoryPosition | null>(null)
 const isPreviewOpen = ref(false)
 
@@ -66,18 +78,6 @@ const visiblePages = computed(() => {
 const hasPrevPage = computed(() => meta.value?.hasPrev ?? false)
 const hasNextPage = computed(() => meta.value?.hasNext ?? false)
 
-async function fetchCars() {
-  carsLoading.value = true
-  try {
-    const response = await carsApi.getAll({ page: 1, pageSize: 100 })
-    cars.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch cars:', error)
-  } finally {
-    carsLoading.value = false
-  }
-}
-
 async function fetchPositions() {
   loading.value = true
   try {
@@ -110,11 +110,10 @@ async function changePageSize(size: number) {
   await fetchPositions()
 }
 
-async function onCarFilterChange(carId: string) {
-  selectedCarId.value = carId ? Number(carId) : null
+watch(selectedCarId, () => {
   currentPage.value = 1
-  await fetchPositions()
-}
+  fetchPositions()
+})
 
 onMounted(() => {
   // Check for query params
@@ -123,7 +122,7 @@ onMounted(() => {
     selectedCarId.value = Number(carIdParam)
   }
 
-  fetchCars()
+  carsStore.fetchCars()
   fetchPositions()
 })
 </script>
@@ -138,19 +137,14 @@ onMounted(() => {
     </div>
 
     <!-- Filter -->
-    <div class="flex items-center gap-3 mb-4">
-      <div class="flex items-center gap-2">
-        <Filter class="h-4 w-4 text-muted-foreground" />
-        <select
-          :value="selectedCarId ?? ''"
-          class="h-9 min-w-[200px] rounded-md border border-input bg-background px-3 text-sm cursor-pointer"
-          @change="onCarFilterChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">{{ t('history.selectVehicle') }}</option>
-          <option v-for="car in cars" :key="car.id" :value="car.id">
-            {{ car.name }}
-          </option>
-        </select>
+    <div class="flex items-end gap-4 mb-4">
+      <div class="w-64">
+        <SearchableSelect
+          v-model="selectedCarId"
+          :options="carOptions"
+          :placeholder="t('history.selectVehicle')"
+          :search-placeholder="t('sidebar.search')"
+        />
       </div>
     </div>
 
@@ -181,6 +175,7 @@ onMounted(() => {
               <th class="text-right px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Bytes</th>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">Ignition</th>
               <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('history.recordedAt') }}</th>
+              <th class="text-left px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{{ t('vehicle.createdAt') }}</th>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-16"></th>
             </tr>
           </thead>
@@ -239,6 +234,9 @@ onMounted(() => {
               </td>
               <td class="px-3 py-1.5 text-muted-foreground text-xs">
                 {{ formatDateTime(pos.recordedAt, uiStore.language) }}
+              </td>
+              <td class="px-3 py-1.5 text-muted-foreground text-xs">
+                {{ formatDateTime(pos.createdAt, uiStore.language) }}
               </td>
               <td class="px-3 py-1.5 text-center">
                 <button

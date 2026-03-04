@@ -507,7 +507,7 @@ function startRouteAnimation() {
   }).addTo(map.value)
 
   // Create moving car marker
-  const startPoint = points[0]
+  const startPoint = points[0]!
   animationMarker.value = L.marker([startPoint.lat, startPoint.lng], {
     icon: createAnimatedCarIcon(startPoint.angle || 0),
     zIndexOffset: 2000,
@@ -518,8 +518,8 @@ function startRouteAnimation() {
   let totalDistance = 0
 
   for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1]
-    const curr = points[i]
+    const prev = points[i - 1]!
+    const curr = points[i]!
     const segmentDistance = Math.sqrt(
       Math.pow((curr.lat - prev.lat) * 111000, 2) + // ~111km per degree latitude
       Math.pow((curr.lng - prev.lng) * 111000 * Math.cos(curr.lat * Math.PI / 180), 2)
@@ -542,7 +542,7 @@ function startRouteAnimation() {
     // Find which segment we're on
     let segmentIndex = 0
     for (let i = 1; i < distances.length; i++) {
-      if (distances[i] >= currentDistance) {
+      if (distances[i]! >= currentDistance) {
         segmentIndex = i - 1
         break
       }
@@ -552,17 +552,17 @@ function startRouteAnimation() {
     // Add passed points to animated line
     while (lastPointIndex < segmentIndex) {
       lastPointIndex++
-      animatedPoints.push([points[lastPointIndex].lat, points[lastPointIndex].lng])
+      animatedPoints.push([points[lastPointIndex]!.lat, points[lastPointIndex]!.lng])
     }
 
     // Calculate position within current segment
-    const segmentStart = distances[segmentIndex]
-    const segmentEnd = distances[segmentIndex + 1] || totalDistance
+    const segmentStart = distances[segmentIndex]!
+    const segmentEnd = distances[segmentIndex + 1] ?? totalDistance
     const segmentLength = segmentEnd - segmentStart
     const segmentProgress = segmentLength > 0 ? (currentDistance - segmentStart) / segmentLength : 0
 
-    const currentPoint = points[segmentIndex]
-    const nextPoint = points[segmentIndex + 1] || currentPoint
+    const currentPoint = points[segmentIndex]!
+    const nextPoint = points[segmentIndex + 1] ?? currentPoint
 
     // Interpolate position
     const interpolatedLat = currentPoint.lat + (nextPoint.lat - currentPoint.lat) * segmentProgress

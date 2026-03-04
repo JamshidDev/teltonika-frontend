@@ -35,7 +35,7 @@ import {
 import carIconSvg from '@/assets/car-icon.svg'
 import { CalendarDate, type DateValue } from '@internationalized/date'
 import { carsApi } from '@/api/cars'
-import type { TimelineItem, RouteWithEventsResponse } from '@/types'
+import type { TimelineItem } from '@/types'
 // import ActivityTimelineChart from './ActivityTimelineChart.vue'
 
 const { t } = useI18n()
@@ -120,7 +120,7 @@ watch(
   () => carsStore.cars,
   (cars) => {
     if (cars.length > 0 && !selectedScheduledCarId.value) {
-      selectedScheduledCarId.value = cars[0].id
+      selectedScheduledCarId.value = cars[0]!.id
     }
   },
   { immediate: true }
@@ -224,10 +224,10 @@ function calculateRouteDistance(points: { lat: number; lng: number }[]): string 
   let totalDistance = 0
   for (let i = 1; i < points.length; i++) {
     totalDistance += calculateDistance(
-      points[i - 1].lat,
-      points[i - 1].lng,
-      points[i].lat,
-      points[i].lng
+      points[i - 1]!.lat,
+      points[i - 1]!.lng,
+      points[i]!.lat,
+      points[i]!.lng
     )
   }
 
@@ -238,13 +238,13 @@ function calculateRouteDistance(points: { lat: number; lng: number }[]): string 
 function getRouteTimes(points: { lat: number; lng: number; recordedAt: string }[]) {
   if (points.length === 0) return { start: '-', end: '-', duration: '-', distance: '0' }
 
-  const startTime = new Date(points[0].recordedAt)
-  const endTime = new Date(points[points.length - 1].recordedAt)
+  const startTime = new Date(points[0]!.recordedAt)
+  const endTime = new Date(points[points.length - 1]!.recordedAt)
   const durationSeconds = (endTime.getTime() - startTime.getTime()) / 1000
 
   return {
-    start: formatTime(points[0].recordedAt),
-    end: formatTime(points[points.length - 1].recordedAt),
+    start: formatTime(points[0]!.recordedAt),
+    end: formatTime(points[points.length - 1]!.recordedAt),
     duration: formatDuration(durationSeconds),
     distance: calculateRouteDistance(points),
   }
@@ -340,8 +340,8 @@ function formatDateLabel(date: Date): string {
     ru: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
     en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   }
-  const months = monthNames[uiStore.language] || monthNames.en
-  return `${day} ${months[date.getMonth()]}`
+  const months = monthNames[uiStore.language] || monthNames.en!
+  return `${day} ${months![date.getMonth()]}`
 }
 
 function isSameDay(date1: Date, date2: Date): boolean {

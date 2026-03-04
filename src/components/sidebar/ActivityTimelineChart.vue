@@ -28,8 +28,8 @@ const segments = computed(() => {
 
     if (item.type === 'route') {
       if (item.points.length === 0) return null
-      startTime = new Date(item.points[0].recordedAt)
-      endTime = new Date(item.points[item.points.length - 1].recordedAt)
+      startTime = new Date(item.points[0]!.recordedAt)
+      endTime = new Date(item.points[item.points.length - 1]!.recordedAt)
     } else {
       startTime = new Date(item.startAt)
       endTime = new Date(item.endAt)
@@ -92,7 +92,7 @@ const popoverData = computed(() => {
 
   const durationSeconds = item.type === 'route'
     ? (item.points.length >= 2
-        ? (new Date(item.points[item.points.length - 1].recordedAt).getTime() - new Date(item.points[0].recordedAt).getTime()) / 1000
+        ? (new Date(item.points[item.points.length - 1]!.recordedAt).getTime() - new Date(item.points[0]!.recordedAt).getTime()) / 1000
         : 0)
     : item.duration
 
@@ -128,7 +128,7 @@ function formatDurationHMS(seconds: number): string {
 function getPositionFromEvent(e: MouseEvent | TouchEvent): number {
   if (!barRef.value) return 0
   const rect = barRef.value.getBoundingClientRect()
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const clientX = 'touches' in e ? e.touches[0]!.clientX : e.clientX
   const x = clientX - rect.left
   return Math.max(0, Math.min(100, (x / rect.width) * 100))
 }
@@ -153,7 +153,7 @@ function handleMouseDown(e: MouseEvent) {
   document.addEventListener('mouseup', handleMouseUp)
 }
 
-function handleTouchStart(e: TouchEvent) {
+function handleTouchStart(_e: TouchEvent) {
   isDragging.value = true
   document.addEventListener('touchmove', handleTouchMove, { passive: false })
   document.addEventListener('touchend', handleTouchEnd)
