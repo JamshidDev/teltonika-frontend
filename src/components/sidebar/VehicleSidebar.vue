@@ -262,7 +262,7 @@ function handleTimelineClick(item: TimelineItem, index: number) {
       lng: item.lng,
       type: item.type,
       startAt: item.startAt,
-      endAt: item.endAt,
+      endAt: item.endAt || '-',
     })
   } else if (item.type === 'route') {
     // Clear any existing spot marker first
@@ -579,10 +579,12 @@ onMounted(() => {
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
                       <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ t('timeline.parking') }}</span>
-                      <span class="text-xs font-bold">{{ formatDuration(item.duration) }}</span>
+                      <span class="text-xs font-bold" :class="item.duration == null ? 'text-green-600 dark:text-green-400' : ''">
+                        {{ item.duration != null ? formatDuration(item.duration) : t('timeline.ongoing') }}
+                      </span>
                     </div>
                     <div class="mt-1 text-[10px] text-muted-foreground">
-                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ formatTime(item.endAt) }}</span></div>
+                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ item.endAt ? formatTime(item.endAt) : '-' }}</span></div>
                       <div class="font-mono mt-0.5">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</div>
                     </div>
                   </div>
@@ -598,10 +600,12 @@ onMounted(() => {
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
                       <span class="text-sm font-medium text-orange-600 dark:text-orange-400">{{ t('timeline.stop') }}</span>
-                      <span class="text-xs font-bold">{{ formatDuration(item.duration) }}</span>
+                      <span class="text-xs font-bold" :class="item.duration == null ? 'text-green-600 dark:text-green-400' : ''">
+                        {{ item.duration != null ? formatDuration(item.duration) : t('timeline.ongoing') }}
+                      </span>
                     </div>
                     <div class="mt-1 text-[10px] text-muted-foreground">
-                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ formatTime(item.endAt) }}</span></div>
+                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ item.endAt ? formatTime(item.endAt) : '-' }}</span></div>
                       <div class="font-mono mt-0.5">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</div>
                     </div>
                   </div>

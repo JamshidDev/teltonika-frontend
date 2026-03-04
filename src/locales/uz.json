@@ -220,7 +220,8 @@
   "timeline": {
     "parking": "Parking",
     "stop": "To'xtash",
-    "route": "Yo'l"
+    "route": "Yo'l",
+    "ongoing": "Davom etmoqda"
   },
   "stopEvents": {
     "title": "To'xtash hodisalari",
