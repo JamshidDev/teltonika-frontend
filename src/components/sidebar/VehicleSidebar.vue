@@ -204,39 +204,9 @@ function formatTime(isoString: string): string {
   })
 }
 
-// Calculate distance between two points using Haversine formula
-function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371 // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
-
-// Calculate total route distance in km
-function calculateRouteDistance(points: { lat: number; lng: number }[]): string {
-  if (points.length < 2) return '0'
-
-  let totalDistance = 0
-  for (let i = 1; i < points.length; i++) {
-    totalDistance += calculateDistance(
-      points[i - 1]!.lat,
-      points[i - 1]!.lng,
-      points[i]!.lat,
-      points[i]!.lng
-    )
-  }
-
-  return totalDistance.toFixed(1)
-}
-
 // Get route duration and times
 function getRouteTimes(points: { lat: number; lng: number; recordedAt: string }[]) {
-  if (points.length === 0) return { start: '-', end: '-', duration: '-', distance: '0' }
+  if (points.length === 0) return { start: '-', end: '-', duration: '-' }
 
   const startTime = new Date(points[0]!.recordedAt)
   const endTime = new Date(points[points.length - 1]!.recordedAt)
@@ -246,7 +216,6 @@ function getRouteTimes(points: { lat: number; lng: number; recordedAt: string }[
     start: formatTime(points[0]!.recordedAt),
     end: formatTime(points[points.length - 1]!.recordedAt),
     duration: formatDuration(durationSeconds),
-    distance: calculateRouteDistance(points),
   }
 }
 
@@ -628,7 +597,7 @@ onMounted(() => {
                     <div class="flex items-center justify-between">
                       <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ t('timeline.route') }}</span>
                       <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold">{{ getRouteTimes(item.points).distance }} km</span>
+                        <span class="text-xs font-bold">{{ item.distance }} km</span>
                         <span class="text-xs font-bold text-muted-foreground">{{ getRouteTimes(item.points).duration }}</span>
                         <!-- Play/Stop animation button -->
                         <button
