@@ -65,10 +65,14 @@ watch(activeTab, (newTab, oldTab) => {
 
   // Clear scheduled tab elements when leaving
   if (oldTab === 'scheduled') {
-    // Clear any scheduled route if exists
     vehiclesStore.clearRoute()
     vehiclesStore.clearSpotMarker()
     selectedTimelineIndex.value = null
+  }
+
+  // Clear history tab elements when leaving
+  if (oldTab === 'history') {
+    vehiclesStore.clearRawPositions()
   }
 
   // Scheduled yoki History tabga o'tganda car markerlarni yashir
@@ -192,7 +196,7 @@ function formatDuration(seconds: number): string {
   return `${minutes}${t('time.minShort')}`
 }
 
-// Format date+time from UTC ISO string to local
+// Format date+time from UTC ISO string to local (with date)
 function formatTime(isoString: string): string {
   const date = new Date(isoString)
   return date.toLocaleString(uiStore.language, {
@@ -201,6 +205,17 @@ function formatTime(isoString: string): string {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
+  })
+}
+
+// Format only time (HH:mm:ss) — period tanlangan bo'lsa sana kerak emas
+function formatTimeOnly(isoString: string): string {
+  const date = new Date(isoString)
+  return date.toLocaleTimeString(uiStore.language, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   })
 }
 
@@ -213,8 +228,8 @@ function getRouteTimes(points: { lat: number; lng: number; recordedAt: string }[
   const durationSeconds = (endTime.getTime() - startTime.getTime()) / 1000
 
   return {
-    start: formatTime(points[0]!.recordedAt),
-    end: formatTime(points[points.length - 1]!.recordedAt),
+    start: formatTimeOnly(points[0]!.recordedAt),
+    end: formatTimeOnly(points[points.length - 1]!.recordedAt),
     duration: formatDuration(durationSeconds),
   }
 }
@@ -335,6 +350,95 @@ function scrollDates(direction: 'left' | 'right') {
   }
 }
 
+// History tab state
+const historySelectorOpen = ref(false)
+const selectedHistoryCarId = ref<number | null>(null)
+const historyDate = ref(new Date())
+const historyCalendarOpen = ref(false)
+const historyDateScrollRef = ref<HTMLElement | null>(null)
+
+// History dates (today + 30 kun orqaga)
+const historyDates = computed(() => {
+  const dates = []
+  const today = new Date()
+  for (let i = 0; i <= 30; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - i)
+    dates.push(date)
+  }
+  return dates
+})
+
+function selectHistoryDate(date: Date) {
+  historyDate.value = date
+}
+
+function scrollHistoryDates(direction: 'left' | 'right') {
+  if (historyDateScrollRef.value) {
+    const scrollAmount = direction === 'left' ? -150 : 150
+    historyDateScrollRef.value.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
+}
+
+const historyCalendarValue = computed({
+  get: () => {
+    const d = historyDate.value
+    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+  },
+  set: (val: DateValue | undefined) => {
+    if (val) {
+      historyDate.value = new Date(val.year, val.month - 1, val.day)
+      historyCalendarOpen.value = false
+    }
+  },
+})
+
+const selectedHistoryCar = computed(() => {
+  if (!selectedHistoryCarId.value) return null
+  return carsStore.cars.find(c => c.id === selectedHistoryCarId.value) || null
+})
+
+function selectHistoryCar(carId: number) {
+  selectedHistoryCarId.value = carId
+  historySelectorOpen.value = false
+}
+
+// Set first car as default for history tab
+watch(
+  () => carsStore.cars,
+  (cars) => {
+    if (cars.length > 0 && !selectedHistoryCarId.value) {
+      selectedHistoryCarId.value = cars[0]!.id
+    }
+  },
+  { immediate: true }
+)
+
+// Fetch raw positions when car or date changes
+function fetchHistoryData() {
+  if (!selectedHistoryCarId.value) return
+  const { from, to } = getUtcDateRange(historyDate.value)
+  vehiclesStore.fetchRawPositions(selectedHistoryCarId.value, from, to)
+}
+
+watch(
+  [selectedHistoryCarId, historyDate],
+  () => {
+    if (selectedHistoryCarId.value && activeTab.value === 'history') {
+      fetchHistoryData()
+    } else {
+      vehiclesStore.clearRawPositions()
+    }
+  }
+)
+
+// Fetch when switching to history tab
+watch(activeTab, (tab) => {
+  if (tab === 'history' && selectedHistoryCarId.value) {
+    fetchHistoryData()
+  }
+})
+
 const vehicles = computed(() => vehiclesStore.filteredVehicles)
 
 const localSearchQuery = ref('')
@@ -392,11 +496,197 @@ onMounted(() => {
 
     <!-- Body -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Coming Soon for history tab -->
-      <div v-if="activeTab === 'history'" class="flex-1 flex items-center justify-center p-4">
-        <div class="text-center text-muted-foreground">
-          <div class="text-4xl mb-3">🚧</div>
-          <p class="text-sm">{{ t('common.comingSoon') }}</p>
+      <!-- History tab content -->
+      <div v-if="activeTab === 'history'" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <!-- Car Selector Row -->
+        <div class="border-b border-border flex-shrink-0">
+          <div class="flex items-center justify-between p-2">
+            <div class="flex-1 min-w-0">
+              <template v-if="selectedHistoryCar">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium truncate">{{ selectedHistoryCar.name }}</span>
+                  <span v-if="selectedHistoryCar.carNumber" class="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono text-muted-foreground">{{ selectedHistoryCar.carNumber }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <p class="text-xs text-muted-foreground">{{ t('sidebar.selectCar') }}</p>
+              </template>
+            </div>
+            <Popover v-model:open="historySelectorOpen">
+              <PopoverTrigger as-child>
+                <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md bg-muted hover:bg-accent transition-colors">
+                  <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent class="w-72 p-0" align="end">
+                <div class="max-h-64 overflow-y-auto">
+                  <div
+                    v-for="car in carsStore.cars"
+                    :key="car.id"
+                    :class="[
+                      'flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors',
+                      selectedHistoryCarId === car.id ? 'bg-primary/10 text-primary' : 'hover:bg-accent',
+                    ]"
+                    @click="selectHistoryCar(car.id)"
+                  >
+                    <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">{{ car.name }}</p>
+                      <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+                    </div>
+                  </div>
+                  <div v-if="carsStore.cars.length === 0" class="p-4 text-center text-sm text-muted-foreground">
+                    {{ t('sidebar.noVehicles') }}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <!-- Date picker (scroll dates + calendar) -->
+        <div class="border-b border-border flex-shrink-0">
+          <div class="flex items-center gap-1 p-2">
+            <!-- Left scroll -->
+            <button
+              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              @click="scrollHistoryDates('left')"
+            >
+              <ChevronLeft class="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            <!-- Scrollable dates -->
+            <div
+              ref="historyDateScrollRef"
+              class="flex-1 flex gap-1 overflow-x-auto scrollbar-hide"
+              style="scroll-behavior: smooth;"
+            >
+              <button
+                v-for="date in historyDates"
+                :key="date.toISOString()"
+                :class="[
+                  'px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
+                  isSameDay(date, historyDate)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground',
+                ]"
+                @click="selectHistoryDate(date)"
+              >
+                {{ formatDateLabel(date) }}
+              </button>
+            </div>
+
+            <!-- Right scroll -->
+            <button
+              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              @click="scrollHistoryDates('right')"
+            >
+              <ChevronRight class="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            <!-- Calendar picker -->
+            <Popover v-model:open="historyCalendarOpen">
+              <PopoverTrigger as-child>
+                <button class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <CalendarIcon class="h-3.5 w-3.5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto p-0" align="end">
+                <Calendar v-model="historyCalendarValue" />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <!-- Hourly grid (24 soat) -->
+        <div class="border-b border-border flex-shrink-0 px-2 py-2 relative">
+          <div class="grid grid-cols-8 gap-1">
+            <button
+              v-for="hour in 24"
+              :key="hour - 1"
+              :class="[
+                'relative h-8 text-[10px] rounded transition-all font-mono leading-none flex flex-col items-center justify-center',
+                vehiclesStore.selectedHour === hour - 1
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : (vehiclesStore.rawPositionsHourly[hour - 1]?.count || 0) > 0
+                    ? 'bg-muted hover:bg-accent text-foreground'
+                    : 'bg-muted/40 text-muted-foreground/50'
+              ]"
+              @click="vehiclesStore.selectHour(vehiclesStore.selectedHour === hour - 1 ? null : hour - 1)"
+            >
+              <span class="font-medium">{{ String(hour - 1).padStart(2, '0') }}</span>
+              <span v-if="(vehiclesStore.rawPositionsHourly[hour - 1]?.count || 0) > 0" class="text-[8px] opacity-70">
+                {{ vehiclesStore.rawPositionsHourly[hour - 1]?.count }}
+              </span>
+            </button>
+          </div>
+          <!-- Loading overlay -->
+          <div v-if="vehiclesStore.rawPositionsLoading" class="absolute inset-0 bg-background/70 flex items-center justify-center rounded">
+            <Loader2 class="h-5 w-5 animate-spin text-primary" />
+          </div>
+          <!-- Tanlangan soat info -->
+          <div class="mt-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
+            <span v-if="vehiclesStore.selectedHour !== null">
+              {{ String(vehiclesStore.selectedHour).padStart(2, '0') }}:00 — {{ String(vehiclesStore.selectedHour).padStart(2, '0') }}:59
+              | {{ vehiclesStore.rawPositions.length }} nuqta
+            </span>
+            <span v-else>{{ vehiclesStore.rawPositionsTotalPoints }} nuqta</span>
+          </div>
+        </div>
+
+        <!-- Empty/Loading state -->
+        <div v-if="vehiclesStore.rawPositionsLoading" class="flex-1 flex items-center justify-center">
+          <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+        <div v-else-if="vehiclesStore.rawPositionsTotalPoints === 0" class="flex-1 flex items-center justify-center p-4">
+          <div class="text-center text-muted-foreground">
+            <History class="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p class="text-sm">{{ t('history.noData') }}</p>
+          </div>
+        </div>
+        <div v-else-if="vehiclesStore.selectedHour !== null && vehiclesStore.rawPositions.length === 0" class="flex-1 flex items-center justify-center p-4">
+          <p class="text-xs text-muted-foreground">Bu soatda ma'lumot yo'q</p>
+        </div>
+
+        <!-- Position list (faqat tanlangan soat yoki barchasi) -->
+        <div v-else class="flex-1 min-h-0 overflow-y-auto divide-y divide-border/30">
+          <div
+            v-for="(p, idx) in vehiclesStore.rawPositions"
+            :key="idx"
+            class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-accent/50 cursor-pointer"
+          >
+            <!-- Raqam (map dagi marker bilan mos) -->
+            <span
+              :class="[
+                'w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-white',
+                !p.ignition ? 'bg-red-500' : p.speed === 0 ? 'bg-yellow-500' : 'bg-green-500'
+              ]"
+            >{{ idx + 1 }}</span>
+
+            <!-- Time -->
+            <span class="text-[11px] text-muted-foreground w-[52px] flex-shrink-0 font-mono">
+              {{ new Date(p.recordedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}
+            </span>
+
+            <!-- Speed -->
+            <span :class="['text-[11px] w-[42px] flex-shrink-0 font-mono text-right', p.speed > 0 ? 'text-foreground font-medium' : 'text-muted-foreground']">
+              {{ p.speed }}
+            </span>
+            <span class="text-[9px] text-muted-foreground flex-shrink-0">km/h</span>
+
+            <!-- Ignition badge -->
+            <span :class="[
+              'text-[9px] px-1.5 py-0.5 rounded flex-shrink-0',
+              p.ignition ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-500'
+            ]">
+              {{ p.ignition ? 'ON' : 'OFF' }}
+            </span>
+
+            <!-- Satellites -->
+            <span class="text-[10px] text-muted-foreground flex-shrink-0">
+              {{ p.satellites }}s
+            </span>
+          </div>
         </div>
       </div>
 
@@ -553,8 +843,10 @@ onMounted(() => {
                       </span>
                     </div>
                     <div class="mt-1 text-[10px] text-muted-foreground">
-                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ item.endAt ? formatTime(item.endAt) : '-' }}</span></div>
-                      <div class="font-mono mt-0.5">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</div>
+                      <div class="flex items-center justify-between">
+                        <span class="font-mono">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</span>
+                        <span class="font-bold text-foreground">{{ formatTimeOnly(item.startAt) }} - {{ item.endAt ? formatTimeOnly(item.endAt) : '-' }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -574,8 +866,10 @@ onMounted(() => {
                       </span>
                     </div>
                     <div class="mt-1 text-[10px] text-muted-foreground">
-                      <div><span class="font-bold text-foreground">{{ formatTime(item.startAt) }}</span> - <span class="font-bold text-foreground">{{ item.endAt ? formatTime(item.endAt) : '-' }}</span></div>
-                      <div class="font-mono mt-0.5">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</div>
+                      <div class="flex items-center justify-between">
+                        <span class="font-mono">{{ item.lat.toFixed(6) }}, {{ item.lng.toFixed(6) }}</span>
+                        <span class="font-bold text-foreground">{{ formatTimeOnly(item.startAt) }} - {{ item.endAt ? formatTimeOnly(item.endAt) : '-' }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -614,22 +908,22 @@ onMounted(() => {
                     </div>
                     <!-- Start point -->
                     <div class="mt-1.5 text-[10px]">
-                      <div class="flex items-center gap-1">
-                        <span class="text-green-600 dark:text-green-400 font-medium">A:</span>
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1">
+                          <span class="text-green-600 dark:text-green-400 font-medium">A:</span>
+                          <span class="font-mono text-muted-foreground">{{ item.points[0]?.lat.toFixed(6) }}, {{ item.points[0]?.lng.toFixed(6) }}</span>
+                        </div>
                         <span class="font-bold">{{ getRouteTimes(item.points).start }}</span>
-                      </div>
-                      <div class="font-mono text-muted-foreground">
-                        {{ item.points[0]?.lat.toFixed(6) }}, {{ item.points[0]?.lng.toFixed(6) }}
                       </div>
                     </div>
                     <!-- End point -->
-                    <div class="mt-1.5 text-[10px]">
-                      <div class="flex items-center gap-1">
-                        <span class="text-blue-600 dark:text-blue-400 font-medium">B:</span>
+                    <div class="mt-1 text-[10px]">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1">
+                          <span class="text-blue-600 dark:text-blue-400 font-medium">B:</span>
+                          <span class="font-mono text-muted-foreground">{{ item.points[item.points.length - 1]?.lat.toFixed(6) }}, {{ item.points[item.points.length - 1]?.lng.toFixed(6) }}</span>
+                        </div>
                         <span class="font-bold">{{ getRouteTimes(item.points).end }}</span>
-                      </div>
-                      <div class="font-mono text-muted-foreground">
-                        {{ item.points[item.points.length - 1]?.lat.toFixed(6) }}, {{ item.points[item.points.length - 1]?.lng.toFixed(6) }}
                       </div>
                     </div>
                   </div>

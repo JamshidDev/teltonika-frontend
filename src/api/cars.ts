@@ -1,5 +1,5 @@
 import api from './axios'
-import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent, RouteWithEventsResponse } from '@/types'
+import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent, RouteWithEventsResponse, RawPositionsResponse } from '@/types'
 
 export interface CarsQueryParams {
   page?: number
@@ -109,6 +109,15 @@ export const carsApi = {
   // Get route with events (timeline)
   async getRouteWithEvents(params: RouteWithEventsParams): Promise<RouteWithEventsResponse> {
     const response = await api.get<RouteWithEventsResponse>('/history/route-with-events', { params })
+    return response.data
+  },
+
+  // Get raw positions for analysis (hourly grouped)
+  async getRawPositions(params: HistoryRouteParams): Promise<RawPositionsResponse> {
+    const tzOffset = -new Date().getTimezoneOffset() // UTC+5 = 300
+    const response = await api.get<RawPositionsResponse>('/history/raw-positions', {
+      params: { ...params, tzOffset },
+    })
     return response.data
   },
 }

@@ -129,6 +129,32 @@ export interface RoutePoint {
   recordedAt: string
 }
 
+export interface RawPositionPoint {
+  lat: number
+  lng: number
+  speed: number
+  angle: number
+  ignition: boolean
+  satellites: number
+  recordedAt: string
+  createdAt: string
+}
+
+export interface HourlyGroup {
+  hour: number
+  label: string
+  count: number
+  points: RawPositionPoint[]
+}
+
+export interface RawPositionsResponse {
+  carId: number
+  from: string
+  to: string
+  totalPoints: number
+  hourly: HourlyGroup[]
+}
+
 // API Response types
 export interface PaginationMeta {
   total: number
