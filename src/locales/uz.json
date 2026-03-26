@@ -121,7 +121,10 @@
     "yesterday": "Kecha",
     "customDate": "Boshqa sana",
     "start": "Boshlash",
-    "end": "Tugash"
+    "end": "Tugash",
+    "points": "nuqta",
+    "speedLegend": "Tezlik bo'yicha ranglar",
+    "analysisReady": "Xaritada nuqtalar ko'rsatilmoqda. Har bir nuqta ustiga olib boring."
   },
   "events": {
     "title": "Hodisalar",

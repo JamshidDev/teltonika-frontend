@@ -121,7 +121,10 @@
     "yesterday": "Yesterday",
     "customDate": "Custom Date",
     "start": "Start",
-    "end": "End"
+    "end": "End",
+    "points": "points",
+    "speedLegend": "Speed color legend",
+    "analysisReady": "Points are displayed on the map. Hover over each point for details."
   },
   "events": {
     "title": "Events",

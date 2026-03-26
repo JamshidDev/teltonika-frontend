@@ -167,7 +167,9 @@ function initMap() {
 
   map.value = L.map(mapContainer.value, {
     zoomControl: false,
-    zoomAnimationThreshold: 4,
+    zoomAnimation: false,
+    fadeAnimation: false,
+    markerZoomAnimation: false,
   }).setView([defaultLat, defaultLng], defaultZoom)
 
   // Add initial tile layer based on dark mode
@@ -822,6 +824,131 @@ function clearRouteLine() {
   }
 }
 
+// Raw positions analysis visualization
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawPositionMarkers = ref<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawPositionLine = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawStartMarker = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawEndMarker = ref<any>(null)
+
+function getRawPositionColor(pos: { ignition: boolean; speed: number }): string {
+  if (!pos.ignition) return '#ef4444'    // Qizil - ignition OFF
+  if (pos.speed === 0) return '#eab308'  // Sariq - ignition ON, tezlik 0
+  return '#22c55e'                        // Yashil - tezlik bor
+}
+
+function drawRawPositions() {
+  if (!map.value) return
+
+  const positions = vehiclesStore.rawPositions
+  if (positions.length === 0) return
+
+  const latLngs: L.LatLngExpression[] = positions.map(p => [p.lat, p.lng])
+
+  // Draw semi-transparent dashed polyline first
+  if (latLngs.length >= 2) {
+    rawPositionLine.value = L.polyline(latLngs, {
+      color: '#6b7280',
+      weight: 2,
+      opacity: 0.4,
+      dashArray: '5, 8',
+    }).addTo(map.value)
+  }
+
+  // Draw CircleMarkers (Canvas — tez, click da popup ochiladi)
+  positions.forEach((p, idx) => {
+    const num = idx + 1
+    const color = getRawPositionColor(p)
+
+    const marker = L.circleMarker([p.lat, p.lng], {
+      radius: 6,
+      fillColor: color,
+      color: '#fff',
+      weight: 1.5,
+      fillOpacity: 0.9,
+    }).addTo(map.value!)
+
+    const time = new Date(p.recordedAt).toLocaleTimeString()
+    const sat = (p as any).satellites ?? '?'
+    const angle = (p as any).angle ?? '?'
+    marker.bindPopup(
+      `<b>#${num} ${time}</b><br>Speed: ${p.speed} km/h<br>Ignition: ${p.ignition ? 'ON' : 'OFF'}<br>Sat: ${sat} | Angle: ${angle}<br>${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+      { closeButton: true, autoClose: true, className: 'raw-position-popup' }
+    )
+
+    rawPositionMarkers.value.push(marker)
+  })
+
+  // A marker (birinchi nuqta) va B marker (oxirgi nuqta)
+  const firstPos = positions[0]
+  const lastPos = positions[positions.length - 1]
+
+  if (firstPos) {
+    rawStartMarker.value = L.marker([firstPos.lat, firstPos.lng], {
+      icon: createRoutePointIcon('A', firstPos.recordedAt),
+      interactive: false,
+      zIndexOffset: 2000,
+    }).addTo(map.value!)
+  }
+
+  if (lastPos && positions.length > 1) {
+    rawEndMarker.value = L.marker([lastPos.lat, lastPos.lng], {
+      icon: createRoutePointIcon('B', lastPos.recordedAt),
+      interactive: false,
+      zIndexOffset: 2001,
+    }).addTo(map.value!)
+  }
+
+  // Fit bounds (offset left for sidebar)
+  if (latLngs.length > 0) {
+    const bounds = L.latLngBounds(latLngs)
+    map.value.fitBounds(bounds, { paddingTopLeft: [480, 50], paddingBottomRight: [50, 50] })
+  }
+}
+
+function safeRemoveLayer(layer: any) {
+  if (!layer) return
+  try {
+    layer.off()
+    layer.unbindTooltip?.()
+    layer.unbindPopup?.()
+    if (map.value?.hasLayer(layer)) {
+      map.value.removeLayer(layer)
+    }
+  } catch (_e) { /* ignore */ }
+}
+
+function clearRawPositions() {
+  // Ochiq popup'larni yopish
+  if (map.value) map.value.closePopup()
+
+  rawPositionMarkers.value.forEach(m => safeRemoveLayer(m))
+  rawPositionMarkers.value = []
+
+  safeRemoveLayer(rawPositionLine.value)
+  rawPositionLine.value = null
+
+  safeRemoveLayer(rawStartMarker.value)
+  rawStartMarker.value = null
+
+  safeRemoveLayer(rawEndMarker.value)
+  rawEndMarker.value = null
+}
+
+// Watch for raw positions changes
+watch(
+  () => vehiclesStore.rawPositions,
+  () => {
+    clearRawPositions()
+    // Eski markerlar to'liq tozalangandan keyin yangilarini chizish
+    setTimeout(() => drawRawPositions(), 50)
+  },
+  { deep: true }
+)
+
 // Watch for route points changes
 watch(
   () => vehiclesStore.routePoints,
@@ -1001,6 +1128,9 @@ onUnmounted(() => {
     }
     spotCircleRef.value = null
   }
+
+  // Clean up raw position markers
+  clearRawPositions()
 
   // Clean up markers layer
   if (markersLayer.value) {

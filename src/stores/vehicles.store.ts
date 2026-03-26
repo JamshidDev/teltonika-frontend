@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { carsApi } from '@/api/cars'
 import { toast } from 'vue-sonner'
-import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent } from '@/types'
+import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent, RawPositionPoint, HourlyGroup } from '@/types'
 
 export const useVehiclesStore = defineStore('vehicles', () => {
   // State
@@ -31,6 +31,13 @@ export const useVehiclesStore = defineStore('vehicles', () => {
 
   // Hide all car markers on map (e.g. when on Scheduled/History tab)
   const markersHidden = ref(false)
+
+  // Raw positions state (for history analysis)
+  const rawPositions = ref<RawPositionPoint[]>([])
+  const rawPositionsHourly = ref<HourlyGroup[]>([])
+  const rawPositionsTotalPoints = ref(0)
+  const rawPositionsLoading = ref(false)
+  const selectedHour = ref<number | null>(null)
 
   // Getters
   const selectedVehicle = computed(() => {
@@ -248,6 +255,49 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     }
   }
 
+  // Fetch raw positions for analysis (hourly grouped)
+  async function fetchRawPositions(carId: number, from: string, to: string): Promise<void> {
+    rawPositionsLoading.value = true
+    selectedHour.value = null
+    try {
+      const response = await carsApi.getRawPositions({ carId, from, to })
+      rawPositionsHourly.value = response.hourly
+      rawPositionsTotalPoints.value = response.totalPoints
+      // Default — map bo'sh, soat tanlanganda ko'rsatiladi
+      rawPositions.value = []
+    } catch (err) {
+      console.error('Failed to fetch raw positions:', err)
+      rawPositions.value = []
+      rawPositionsHourly.value = []
+      rawPositionsTotalPoints.value = 0
+    } finally {
+      rawPositionsLoading.value = false
+    }
+  }
+
+  function selectHour(hour: number | null): void {
+    selectedHour.value = hour
+    rawPositionsLoading.value = true
+    rawPositions.value = []
+    setTimeout(() => {
+      if (hour === null) {
+        // Soat tanlanmagan — map bo'sh, faqat list ko'rsatilmaydi
+        rawPositions.value = []
+      } else {
+        const group = rawPositionsHourly.value.find(h => h.hour === hour)
+        rawPositions.value = group ? group.points : []
+      }
+      rawPositionsLoading.value = false
+    }, 100)
+  }
+
+  function clearRawPositions(): void {
+    rawPositions.value = []
+    rawPositionsHourly.value = []
+    rawPositionsTotalPoints.value = 0
+    selectedHour.value = null
+  }
+
   // Start route animation
   function startRouteAnimation(): void {
     if (routePoints.value.length < 2) return
@@ -279,6 +329,11 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     spotMarker,
     routeAnimating,
     markersHidden,
+    rawPositions,
+    rawPositionsHourly,
+    rawPositionsTotalPoints,
+    rawPositionsLoading,
+    selectedHour,
     // Getters
     selectedVehicle,
     followedVehicle,
@@ -307,5 +362,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     clearSpotMarker,
     startRouteAnimation,
     stopRouteAnimation,
+    fetchRawPositions,
+    clearRawPositions,
+    selectHour,
   }
 })
