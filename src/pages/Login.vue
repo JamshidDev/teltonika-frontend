@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-background">
+  <div class="h-[100dvh] overflow-y-auto lg:overflow-hidden flex bg-background">
     <!-- Left Column — Login Form -->
     <div class="w-full lg:w-[45%] flex flex-col relative bg-background">
       <!-- Language switcher -->
@@ -66,12 +66,12 @@ onBeforeUnmount(() => {
           <!-- Logo -->
           <div class="flex flex-col items-center mb-10">
             <div class="relative mb-4">
-              <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <MapPin class="h-8 w-8 text-white" />
+              <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
+                <MapPin class="h-8 w-8 text-primary-foreground" />
               </div>
-              <div class="absolute -inset-1 bg-blue-500/20 rounded-2xl blur-sm -z-10"></div>
+              <div class="absolute -inset-1 bg-primary/25 rounded-2xl blur-sm -z-10"></div>
             </div>
-            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            <h1 class="text-xl font-bold tracking-wide text-foreground">
               {{ t('app.title') }}
             </h1>
             <p class="text-muted-foreground text-sm mt-0.5">{{ t('app.subtitle') }}</p>
@@ -79,8 +79,7 @@ onBeforeUnmount(() => {
 
           <!-- Welcome text -->
           <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-foreground">{{ t('auth.welcomeBack') }}</h2>
-            <p class="text-muted-foreground text-sm mt-1">{{ t('auth.loginSubtitle') }}</p>
+            <h2 class="text-2xl font-bold text-foreground">{{ t('auth.loginSubtitle') }}</h2>
           </div>
 
           <!-- Login Form -->
@@ -88,7 +87,7 @@ onBeforeUnmount(() => {
             <!-- Error message -->
             <div
               v-if="authStore.error"
-              class="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+              class="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm"
             >
               {{ authStore.error }}
             </div>
@@ -104,7 +103,7 @@ onBeforeUnmount(() => {
                   v-model="email"
                   type="email"
                   :placeholder="t('auth.email')"
-                  class="pl-10 h-11"
+                  class="pl-10 h-12 rounded-xl"
                 />
               </div>
             </div>
@@ -120,7 +119,7 @@ onBeforeUnmount(() => {
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
                   :placeholder="t('auth.password')"
-                  class="pl-10 pr-10 h-11"
+                  class="pl-10 pr-10 h-12 rounded-xl"
                 />
                 <button
                   type="button"
@@ -136,7 +135,7 @@ onBeforeUnmount(() => {
             <!-- Submit -->
             <Button
               type="submit"
-              class="w-full h-11 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/25 text-[15px]"
+              class="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 text-[15px] font-semibold"
               :loading="authStore.loading"
               :disabled="!isFormValid"
             >
@@ -148,7 +147,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Right Column — Showcase (hidden on mobile) -->
-    <div class="hidden lg:flex lg:w-[55%] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 dark:from-blue-900 dark:via-blue-950 dark:to-slate-950 flex-col relative overflow-hidden">
+    <div class="hidden lg:flex lg:w-[55%] bg-foreground flex-col relative overflow-hidden">
       <!-- Background pattern -->
       <div class="absolute inset-0 opacity-10">
         <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 40px 40px;"></div>
@@ -185,7 +184,7 @@ onBeforeUnmount(() => {
               <p class="text-2xl xl:text-3xl font-medium text-white leading-relaxed">
                 "{{ t(tk.text) }}"
               </p>
-              <p class="text-blue-200 mt-4 text-sm">— {{ t(tk.author) }}</p>
+              <p class="text-background/70 mt-4 text-sm">— {{ t(tk.author) }}</p>
             </div>
           </div>
 
@@ -205,43 +204,43 @@ onBeforeUnmount(() => {
 
         <!-- Feature cards -->
         <div class="grid grid-cols-2 gap-4 mt-4">
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <div class="w-10 h-10 rounded-lg bg-green-400/20 flex items-center justify-center mb-3">
+          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
+            <div class="w-10 h-10 rounded-xl bg-green-400/20 flex items-center justify-center mb-3">
               <Navigation class="h-5 w-5 text-green-300" />
             </div>
             <h3 class="text-white font-semibold text-sm">{{ t('auth.featureLiveTracking') }}</h3>
-            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureLiveTrackingDesc') }}</p>
+            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureLiveTrackingDesc') }}</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <div class="w-10 h-10 rounded-lg bg-blue-400/20 flex items-center justify-center mb-3">
-              <Route class="h-5 w-5 text-blue-300" />
+          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
+            <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mb-3">
+              <Route class="h-5 w-5 text-primary" />
             </div>
             <h3 class="text-white font-semibold text-sm">{{ t('auth.featureRouteHistory') }}</h3>
-            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureRouteHistoryDesc') }}</p>
+            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureRouteHistoryDesc') }}</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <div class="w-10 h-10 rounded-lg bg-purple-400/20 flex items-center justify-center mb-3">
+          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
+            <div class="w-10 h-10 rounded-xl bg-purple-400/20 flex items-center justify-center mb-3">
               <Truck class="h-5 w-5 text-purple-300" />
             </div>
             <h3 class="text-white font-semibold text-sm">{{ t('auth.featureFleetManagement') }}</h3>
-            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureFleetManagementDesc') }}</p>
+            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureFleetManagementDesc') }}</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <div class="w-10 h-10 rounded-lg bg-orange-400/20 flex items-center justify-center mb-3">
+          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
+            <div class="w-10 h-10 rounded-xl bg-orange-400/20 flex items-center justify-center mb-3">
               <MapPinned class="h-5 w-5 text-orange-300" />
             </div>
             <h3 class="text-white font-semibold text-sm">{{ t('auth.featureSmartAlerts') }}</h3>
-            <p class="text-blue-200 text-xs mt-1">{{ t('auth.featureSmartAlertsDesc') }}</p>
+            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureSmartAlertsDesc') }}</p>
           </div>
         </div>
       </div>
 
       <!-- Bottom decoration -->
       <div class="px-12 pb-6 relative z-10">
-        <div class="flex items-center gap-3 text-blue-300/60 text-xs">
+        <div class="flex items-center gap-3 text-background/50 text-xs">
           <MapPin class="h-4 w-4" />
           <span>{{ t('app.title') }} — {{ t('app.subtitle') }}</span>
         </div>
