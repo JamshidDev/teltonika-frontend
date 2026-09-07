@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'events' | 'reports' | 'settings' | 'stop-events' | 'engine-events'
+export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'reports' | 'settings' | 'engine-events'
 export type Language = 'uz' | 'ru' | 'en'
 
 export const useUiStore = defineStore('ui', () => {
@@ -16,6 +16,18 @@ export const useUiStore = defineStore('ui', () => {
     localStorage.getItem('darkMode') === 'true' ||
       window.matchMedia('(prefers-color-scheme: dark)').matches
   )
+  // Sheet'dan xaritaga "barchasini ko'rsatish" signali — hisoblagich oshsa xarita reaksiya qiladi.
+  const fitAllRequest = ref(0)
+  // Xaritaga bosilganda pastki varaqni yig'ish signali.
+  const sheetCollapseRequest = ref(0)
+  // Yon navigatsiya paneli — header'dagi tugma boshqaradi.
+  const navDrawerOpen = ref(false)
+  // Xarita qatlami — pastki menyudagi "Ko'proq" boshqaradi.
+  const mapTile = ref<string>('light')
+  // Dashboard paneli — pastki suzuvchi menyu boshqaradi (desktop + mobil).
+  const panelOpen = ref(false)
+  const panelTab = ref<'live' | 'scheduled'>('live')
+
   const mapZoom = ref(12)
   const mapCenter = ref<[number, number]>([41.2995, 69.2401]) // Tashkent coordinates
 
@@ -71,6 +83,36 @@ export const useUiStore = defineStore('ui', () => {
     mapCenter.value = center
   }
 
+  function requestFitAll() {
+    fitAllRequest.value++
+  }
+
+  function requestSheetCollapse() {
+    sheetCollapseRequest.value++
+  }
+
+  function setNavDrawerOpen(value: boolean) {
+    navDrawerOpen.value = value
+  }
+
+  function setMapTile(key: string) {
+    mapTile.value = key
+  }
+
+  function selectPanel(tab: 'live' | 'scheduled') {
+    // Ochiq turgan bo'lim qayta bosilsa — yopiladi.
+    if (panelOpen.value && panelTab.value === tab) {
+      panelOpen.value = false
+      return
+    }
+    panelTab.value = tab
+    panelOpen.value = true
+  }
+
+  function closePanel() {
+    panelOpen.value = false
+  }
+
   return {
     // State
     sidebarOpen,
@@ -80,6 +122,12 @@ export const useUiStore = defineStore('ui', () => {
     darkMode,
     mapZoom,
     mapCenter,
+    fitAllRequest,
+    sheetCollapseRequest,
+    navDrawerOpen,
+    mapTile,
+    panelOpen,
+    panelTab,
     // Actions
     toggleSidebar,
     setSidebarOpen,
@@ -89,5 +137,11 @@ export const useUiStore = defineStore('ui', () => {
     toggleDarkMode,
     setMapZoom,
     setMapCenter,
+    requestFitAll,
+    requestSheetCollapse,
+    setNavDrawerOpen,
+    setMapTile,
+    selectPanel,
+    closePanel,
   }
 })

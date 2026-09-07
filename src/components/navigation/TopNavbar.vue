@@ -30,7 +30,7 @@ function goToSettings() {
 
 <template>
   <header
-    class="h-14 bg-background border-b border-border flex items-center justify-between px-4 z-40"
+    class="h-14 bg-background border-b border-border flex items-center justify-between pl-16 pr-4 md:px-4 z-40"
   >
     <!-- Title -->
     <div class="flex items-center">

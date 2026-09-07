@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "GPS Tracking",
+    "title": "MEGAGO GPS",
     "subtitle": "Transport kuzatuv tizimi"
   },
   "auth": {
@@ -30,7 +30,7 @@
     "featureSmartAlertsDesc": "Geofence va harakat aniqlash xabarnomalarl"
   },
   "nav": {
-    "dashboard": "Boshqaruv paneli",
+    "dashboard": "Boshqaruv xaritasi",
     "history": "Tarix",
     "events": "Hodisalar",
     "reports": "Hisobotlar",
@@ -95,7 +95,7 @@
     "zoomIn": "Kattalashtirish",
     "zoomOut": "Kichiklashtirish",
     "center": "Markazga",
-    "layers": "Qatlamlar",
+    "layers": "Map qatlamlari",
     "fitAll": "Barchasini ko'rsatish",
     "satellite": "Sun'iy yo'ldosh",
     "street": "Ko'cha xaritasi",
@@ -104,7 +104,10 @@
     "clearRoute": "Yo'lni tozalash",
     "follow": "Kuzatish",
     "unfollow": "Kuzatishni to'xtatish",
-    "following": "Kuzatilmoqda"
+    "following": "Kuzatilmoqda",
+    "myLocation": "Mening joylashuvim",
+    "locationDenied": "Joylashuvga ruxsat berilmadi",
+    "locationError": "Joylashuvni aniqlab bo'lmadi"
   },
   "history": {
     "title": "Harakat tarixi",
@@ -209,7 +212,10 @@
     "actions": "Amallar",
     "comingSoon": "Tez orada ishga tushadi",
     "today": "Bugun",
-    "yesterday": "Kecha"
+    "yesterday": "Kecha",
+    "open": "Ochish",
+    "play": "Ijro etish",
+    "stop": "To'xtatish"
   },
   "time": {
     "now": "hozir",
@@ -262,5 +268,11 @@
     "parking_candidate": "Dvigatel o'chdi",
     "parking": "Parking",
     "minutes": "daq"
+  },
+  "mobileNav": {
+    "vehicles": "Mashinalar",
+    "route": "Yo'l",
+    "history": "Tarix",
+    "more": "Ko'proq"
   }
 }

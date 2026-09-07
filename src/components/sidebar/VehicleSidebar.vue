@@ -24,15 +24,13 @@ import {
   Radio,
   Route,
   History,
-  ChevronUp,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CalendarIcon,
   Play,
   Square,
 } from 'lucide-vue-next'
-import carIconSvg from '@/assets/car-icon.svg'
+import carIconSvg from '@/assets/taxi-marker.svg'
 import { CalendarDate, type DateValue } from '@internationalized/date'
 import { carsApi } from '@/api/cars'
 import type { TimelineItem } from '@/types'
@@ -44,14 +42,26 @@ const carsStore = useCarsStore()
 const uiStore = useUiStore()
 
 // Tabs
-type SidebarTab = 'live' | 'scheduled' | 'history'
-const activeTab = ref<SidebarTab>('live')
-const isBodyCollapsed = ref(false)
+export type SidebarTab = 'live' | 'scheduled' | 'history'
+
+const props = defineProps<{
+  tab?: SidebarTab
+  hideTabs?: boolean
+}>()
+
+const activeTab = ref<SidebarTab>(props.tab ?? 'live')
+
+// Mobil pastki menyudan kelgan tanlov.
+watch(
+  () => props.tab,
+  (t) => {
+    if (t && t !== activeTab.value) activeTab.value = t
+  }
+)
 
 const tabs = computed(() => [
   { key: 'live' as SidebarTab, label: t('sidebar.live'), icon: Radio },
   { key: 'scheduled' as SidebarTab, label: t('sidebar.scheduled'), icon: Route },
-  { key: 'history' as SidebarTab, label: t('sidebar.history'), icon: History },
 ])
 
 // Clear map elements when switching tabs
@@ -197,18 +207,6 @@ function formatDuration(seconds: number): string {
 }
 
 // Format date+time from UTC ISO string to local (with date)
-function formatTime(isoString: string): string {
-  const date = new Date(isoString)
-  return date.toLocaleString(uiStore.language, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
 // Format only time (HH:mm:ss) — period tanlangan bo'lsa sana kerak emas
 function formatTimeOnly(isoString: string): string {
   const date = new Date(isoString)
@@ -257,18 +255,6 @@ function handleTimelineClick(item: TimelineItem, index: number) {
 }
 
 // Get border color for selected timeline item
-function getTimelineBorderColor(item: TimelineItem): string {
-  switch (item.type) {
-    case 'parking':
-      return '#dc2626' // red-600
-    case 'stop':
-      return '#ea580c' // orange-600
-    case 'route':
-      return '#22c55e' // green-500
-    default:
-      return '#3b82f6' // blue-500
-  }
-}
 
 // Handle route animation play/stop
 function toggleRouteAnimation(event: Event, item: TimelineItem, index: number) {
@@ -461,15 +447,15 @@ function handleScroll(event: Event) {
 }
 
 onMounted(() => {
-  vehiclesStore.fetchVehicles()
+  // fetchVehicles() Dashboard'da chaqiriladi — sidebar mount bo'lishiga bog'liq bo'lmasligi uchun.
   carsStore.fetchCars()
 })
 </script>
 
 <template>
-  <aside class="w-[420px] h-full bg-background flex flex-col">
+  <aside class="w-full md:w-[420px] h-full bg-background flex flex-col">
     <!-- Header with Tabs -->
-    <div class="border-b border-border">
+    <div v-if="!hideTabs" class="border-b border-border">
       <TooltipProvider :delay-duration="0">
         <div class="flex">
           <Tooltip v-for="tab in tabs" :key="tab.key">
@@ -514,7 +500,7 @@ onMounted(() => {
             </div>
             <Popover v-model:open="historySelectorOpen">
               <PopoverTrigger as-child>
-                <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md bg-muted hover:bg-accent transition-colors">
+                <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors">
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
                 </button>
               </PopoverTrigger>
@@ -549,7 +535,7 @@ onMounted(() => {
           <div class="flex items-center gap-1 p-2">
             <!-- Left scroll -->
             <button
-              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               @click="scrollHistoryDates('left')"
             >
               <ChevronLeft class="h-4 w-4 text-muted-foreground" />
@@ -565,7 +551,7 @@ onMounted(() => {
                 v-for="date in historyDates"
                 :key="date.toISOString()"
                 :class="[
-                  'px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
+                  'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
                   isSameDay(date, historyDate)
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground',
@@ -578,7 +564,7 @@ onMounted(() => {
 
             <!-- Right scroll -->
             <button
-              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               @click="scrollHistoryDates('right')"
             >
               <ChevronRight class="h-4 w-4 text-muted-foreground" />
@@ -587,7 +573,7 @@ onMounted(() => {
             <!-- Calendar picker -->
             <Popover v-model:open="historyCalendarOpen">
               <PopoverTrigger as-child>
-                <button class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <button class="h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
                   <CalendarIcon class="h-3.5 w-3.5" />
                 </button>
               </PopoverTrigger>
@@ -712,7 +698,7 @@ onMounted(() => {
             <Popover v-model:open="carSelectorOpen">
               <PopoverTrigger as-child>
                 <button
-                  class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md bg-muted hover:bg-accent transition-colors"
+                  class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors"
                 >
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
                 </button>
@@ -725,7 +711,7 @@ onMounted(() => {
                     :class="[
                       'flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors',
                       selectedScheduledCarId === car.id
-                        ? 'bg-primary/10 text-primary'
+                        ? 'bg-primary/15 text-foreground font-medium'
                         : 'hover:bg-accent',
                     ]"
                     @click="selectScheduledCar(car.id)"
@@ -750,7 +736,7 @@ onMounted(() => {
           <div class="flex items-center gap-1 p-2">
             <!-- Left scroll button -->
             <button
-              class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               @click="scrollDates('left')"
             >
               <ChevronLeft class="h-4 w-4 text-muted-foreground" />
@@ -766,7 +752,7 @@ onMounted(() => {
                 v-for="date in scheduledDates"
                 :key="date.toISOString()"
                 :class="[
-                  'px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
+                  'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
                   isSameDay(date, selectedDate)
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground',
@@ -779,7 +765,7 @@ onMounted(() => {
 
             <!-- Right scroll button -->
             <button
-              class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+              class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               @click="scrollDates('right')"
             >
               <ChevronRight class="h-4 w-4 text-muted-foreground" />
@@ -789,7 +775,7 @@ onMounted(() => {
             <Popover v-model:open="calendarOpen">
               <PopoverTrigger as-child>
                 <button
-                  class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   <CalendarIcon class="h-4 w-4" />
                 </button>
@@ -821,12 +807,10 @@ onMounted(() => {
             <div
               v-for="(item, index) in timeline"
               :key="index"
-              class="p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
-              :style="selectedTimelineIndex === index ? {
-                borderLeftWidth: '4px',
-                borderLeftColor: getTimelineBorderColor(item),
-                backgroundColor: 'hsl(var(--accent))'
-              } : {}"
+              class="p-3 rounded-xl border transition-colors cursor-pointer"
+              :class="selectedTimelineIndex === index
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:bg-accent/50'"
               @click="handleTimelineClick(item, index)"
             >
               <!-- Parking Card -->
@@ -955,22 +939,12 @@ onMounted(() => {
             <Input
               v-model="localSearchQuery"
               :placeholder="t('sidebar.search')"
-              class="pl-9 shadow-none"
+              class="h-10 rounded-xl pl-9 shadow-none"
               @input="handleSearch"
-              @focus="isBodyCollapsed && (isBodyCollapsed = false)"
             />
           </div>
-          <button
-            class="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
-            @click="isBodyCollapsed = !isBodyCollapsed"
-          >
-            <ChevronUp v-if="!isBodyCollapsed" class="h-4 w-4 text-muted-foreground" />
-            <ChevronDown v-else class="h-4 w-4 text-muted-foreground" />
-          </button>
         </div>
 
-        <!-- Collapsible body -->
-        <template v-if="!isBodyCollapsed">
           <!-- Loading state -->
           <div
             v-if="vehiclesStore.loading"
@@ -1004,7 +978,6 @@ onMounted(() => {
               <Loader2 class="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           </div>
-        </template>
       </template>
     </div>
   </aside>

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "GPS Tracking",
+    "title": "MEGAGO GPS",
     "subtitle": "Vehicle Monitoring System"
   },
   "auth": {
@@ -30,7 +30,7 @@
     "featureSmartAlertsDesc": "Geofence and motion detection notifications"
   },
   "nav": {
-    "dashboard": "Dashboard",
+    "dashboard": "Control map",
     "history": "History",
     "events": "Events",
     "reports": "Reports",
@@ -95,7 +95,7 @@
     "zoomIn": "Zoom In",
     "zoomOut": "Zoom Out",
     "center": "Center",
-    "layers": "Layers",
+    "layers": "Map layers",
     "fitAll": "Fit All",
     "satellite": "Satellite",
     "street": "Street Map",
@@ -104,7 +104,10 @@
     "clearRoute": "Clear Route",
     "follow": "Follow",
     "unfollow": "Unfollow",
-    "following": "Following"
+    "following": "Following",
+    "myLocation": "My location",
+    "locationDenied": "Location permission denied",
+    "locationError": "Could not determine location"
   },
   "history": {
     "title": "Movement History",
@@ -209,7 +212,10 @@
     "actions": "Actions",
     "comingSoon": "Coming soon",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "open": "Open",
+    "play": "Play",
+    "stop": "Stop"
   },
   "time": {
     "now": "now",
@@ -262,5 +268,11 @@
     "parking_candidate": "Engine off",
     "parking": "Parking",
     "minutes": "min"
+  },
+  "mobileNav": {
+    "vehicles": "Vehicles",
+    "route": "Route",
+    "history": "History",
+    "more": "More"
   }
 }

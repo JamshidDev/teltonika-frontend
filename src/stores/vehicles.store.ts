@@ -54,11 +54,17 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     if (!searchQuery.value.trim()) return vehicles.value
 
     const query = searchQuery.value.toLowerCase().trim()
-    return vehicles.value.filter(
-      (v) =>
-        v.name?.toLowerCase().includes(query) ||
-        v.deviceImei?.toLowerCase().includes(query)
-    )
+    // Har bir so'z alohida qidiriladi — tartib muhim emas ("cobalt 616" = "616 cobalt").
+    // Raqamlar bo'shliq bilan saqlanadi ("90 616 MBA"), shuning uchun bo'shliqsiz nusxa ham qo'shiladi.
+    const terms = query.split(/\s+/).filter(Boolean)
+
+    return vehicles.value.filter((v) => {
+      const name = v.name?.toLowerCase() ?? ''
+      const number = v.carNumber?.toLowerCase() ?? ''
+      const imei = v.deviceImei?.toLowerCase() ?? ''
+      const haystack = [name, number, imei, name.replace(/\s+/g, ''), number.replace(/\s+/g, '')].join(' ')
+      return terms.every((term) => haystack.includes(term))
+    })
   })
 
   const onlineVehicles = computed(() =>

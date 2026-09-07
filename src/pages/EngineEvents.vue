@@ -145,8 +145,8 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="overflow-auto flex-1">
-        <table class="w-full text-sm">
+      <div class="overflow-auto table-scroll flex-1">
+        <table class="w-full min-w-[640px] md:min-w-0 text-sm">
           <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
               <th class="text-center px-3 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider w-12">#</th>

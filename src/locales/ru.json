@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "GPS Tracking",
+    "title": "MEGAGO GPS",
     "subtitle": "Система мониторинга транспорта"
   },
   "auth": {
@@ -30,7 +30,7 @@
     "featureSmartAlertsDesc": "Уведомления о геозонах и обнаружении движения"
   },
   "nav": {
-    "dashboard": "Панель управления",
+    "dashboard": "Карта управления",
     "history": "История",
     "events": "События",
     "reports": "Отчёты",
@@ -95,7 +95,7 @@
     "zoomIn": "Приблизить",
     "zoomOut": "Отдалить",
     "center": "По центру",
-    "layers": "Слои",
+    "layers": "Слои карты",
     "fitAll": "Показать все",
     "satellite": "Спутник",
     "street": "Карта улиц",
@@ -104,7 +104,10 @@
     "clearRoute": "Очистить маршрут",
     "follow": "Следить",
     "unfollow": "Прекратить слежение",
-    "following": "Слежение"
+    "following": "Слежение",
+    "myLocation": "Моё местоположение",
+    "locationDenied": "Доступ к геолокации отклонён",
+    "locationError": "Не удалось определить местоположение"
   },
   "history": {
     "title": "История движения",
@@ -209,7 +212,10 @@
     "actions": "Действия",
     "comingSoon": "Скоро будет доступно",
     "today": "Сегодня",
-    "yesterday": "Вчера"
+    "yesterday": "Вчера",
+    "open": "Открыть",
+    "play": "Воспроизвести",
+    "stop": "Остановить"
   },
   "time": {
     "now": "сейчас",
@@ -262,5 +268,11 @@
     "parking_candidate": "Двигатель выкл",
     "parking": "Парковка",
     "minutes": "мин"
+  },
+  "mobileNav": {
+    "vehicles": "Машины",
+    "route": "Маршрут",
+    "history": "История",
+    "more": "Ещё"
   }
 }

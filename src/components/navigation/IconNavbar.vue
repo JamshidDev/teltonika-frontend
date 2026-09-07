@@ -15,11 +15,9 @@ import {
   Users,
   Cpu,
   History,
-  Bell,
   FileText,
   Settings,
   MapPin,
-  ParkingCircle,
   Power,
 } from 'lucide-vue-next'
 
@@ -30,14 +28,12 @@ const uiStore = useUiStore()
 
 // Navigation items
 const navItems = computed(() => [
-  { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/dashboard' },
+  { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/map' },
   { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles' },
   { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers' },
   { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices' },
   { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history' },
-  { key: 'stop-events' as TabType, label: t('nav.stopEvents'), icon: ParkingCircle, route: '/stop-events' },
   { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events' },
-  { key: 'events' as TabType, label: t('nav.events'), icon: Bell, route: '/events' },
   { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports' },
 ])
 
@@ -66,7 +62,7 @@ function navigateTo(item: { key: TabType; route: string }) {
 </script>
 
 <template>
-  <aside class="w-16 h-full bg-[#1e3a5f] flex flex-col items-center py-3 flex-shrink-0">
+  <aside class="icon-rail w-16 h-full hidden md:flex flex-col items-center py-3 flex-shrink-0">
     <!-- Logo -->
     <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mb-6">
       <MapPin class="h-5 w-5 text-primary-foreground" />
@@ -121,3 +117,13 @@ function navigateTo(item: { key: TabType; route: string }) {
     </nav>
   </aside>
 </template>
+
+<style scoped>
+/* megago.uz uslubi: quyuq siyoh rangi, shaffof va blur */
+.icon-rail {
+  background-color: hsl(0 0% 6.7% / 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid hsl(0 0% 100% / 0.08);
+}
+</style>

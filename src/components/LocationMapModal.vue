@@ -24,14 +24,16 @@ const mapContainer = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
 let marker: L.Marker | null = null
 
+const TILE_BASE = (import.meta.env.VITE_TILE_BASE_URL || 'https://osm.megago.uz').replace(/\/$/, '')
+
 const mapTiles = {
   light: {
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; OpenStreetMap contributors',
+    url: `${TILE_BASE}/ts/styles/client-light/{z}/{x}/{y}{r}.png`,
+    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
   },
   dark: {
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OSM &copy; CARTO',
+    url: `${TILE_BASE}/ts/styles/client-dark/{z}/{x}/{y}{r}.png`,
+    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
   },
 }
 
@@ -66,7 +68,9 @@ function initMap() {
   const tile = uiStore.darkMode ? mapTiles.dark : mapTiles.light
   L.tileLayer(tile.url, {
     attribution: tile.attribution,
-    maxZoom: 19,
+    maxZoom: 20,
+    updateWhenZooming: false,
+    keepBuffer: 4,
   }).addTo(map)
 
   // Add marker with custom icon
