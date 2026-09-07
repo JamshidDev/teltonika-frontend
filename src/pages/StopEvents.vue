@@ -224,7 +224,7 @@ onMounted(async () => {
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30">
+      <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 md:px-4 py-3 border-t border-border bg-muted/30">
         <div class="flex items-center gap-4 text-sm text-muted-foreground">
           <span>{{ t('common.total') }}: <strong class="text-foreground">{{ stopEventsStore.totalEvents }}</strong></span>
           <span class="text-border">|</span>
