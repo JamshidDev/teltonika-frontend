@@ -67,6 +67,8 @@ function initMap() {
   L.tileLayer(tile.url, {
     attribution: tile.attribution,
     maxZoom: 19,
+    updateWhenZooming: false,
+    keepBuffer: 4,
   }).addTo(map)
 
   // Add marker with custom icon

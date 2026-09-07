@@ -16,6 +16,11 @@ export const useUiStore = defineStore('ui', () => {
     localStorage.getItem('darkMode') === 'true' ||
       window.matchMedia('(prefers-color-scheme: dark)').matches
   )
+  // Sheet'dan xaritaga "barchasini ko'rsatish" signali — hisoblagich oshsa xarita reaksiya qiladi.
+  const fitAllRequest = ref(0)
+  // Xaritaga bosilganda pastki varaqni yig'ish signali.
+  const sheetCollapseRequest = ref(0)
+
   const mapZoom = ref(12)
   const mapCenter = ref<[number, number]>([41.2995, 69.2401]) // Tashkent coordinates
 
@@ -71,6 +76,14 @@ export const useUiStore = defineStore('ui', () => {
     mapCenter.value = center
   }
 
+  function requestFitAll() {
+    fitAllRequest.value++
+  }
+
+  function requestSheetCollapse() {
+    sheetCollapseRequest.value++
+  }
+
   return {
     // State
     sidebarOpen,
@@ -80,6 +93,8 @@ export const useUiStore = defineStore('ui', () => {
     darkMode,
     mapZoom,
     mapCenter,
+    fitAllRequest,
+    sheetCollapseRequest,
     // Actions
     toggleSidebar,
     setSidebarOpen,
@@ -89,5 +104,7 @@ export const useUiStore = defineStore('ui', () => {
     toggleDarkMode,
     setMapZoom,
     setMapCenter,
+    requestFitAll,
+    requestSheetCollapse,
   }
 })

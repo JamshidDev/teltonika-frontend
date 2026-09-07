@@ -32,7 +32,7 @@ function setLanguage(lang: Language) {
 <template>
   <div class="h-full flex flex-col p-4 overflow-auto">
     <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold text-foreground">
+      <h1 class="text-xl md:text-2xl font-bold text-foreground">
         {{ t('settings.title') }}
       </h1>
       <SettingsIcon class="h-6 w-6 text-muted-foreground" />

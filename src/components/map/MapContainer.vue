@@ -1,21 +1,37 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, shallowRef, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useUiStore } from '@/stores/ui.store'
 import { useVehiclesRealtime } from '@/composables/useVehiclesRealtime'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Layers, Plus, Minus, Locate, X, Loader2, Navigation, XCircle } from 'lucide-vue-next'
+import { Layers, Plus, Minus, Locate, X, Loader2, Navigation, XCircle, Play, Square } from 'lucide-vue-next'
 import carIconUrl from '@/assets/car-icon.svg'
 
 const { t } = useI18n()
+const { isDesktop } = useBreakpoint()
+
+// Desktopda chapdagi panel, mobilda pastdagi varaq marshrutni to'smasligi uchun.
+// VehicleBottomSheet dagi SNAP_PEEK (0.1) bilan mos bo'lishi shart.
+const SHEET_PEEK_DVH = 10
+
+const controlsStyle = computed(() => ({
+  bottom: isDesktop.value ? '1.5rem' : `calc(${SHEET_PEEK_DVH}dvh + 1.5rem)`,
+}))
+
+function routePadding() {
+  return isDesktop.value
+    ? { paddingTopLeft: [480, 50] as [number, number], paddingBottomRight: [50, 50] as [number, number] }
+    : { paddingTopLeft: [24, 80] as [number, number], paddingBottomRight: [24, 160] as [number, number] }
+}
 const vehiclesStore = useVehiclesStore()
 const uiStore = useUiStore()
 
@@ -24,29 +40,31 @@ useVehiclesRealtime()
 
 const mapContainer = ref<HTMLElement | null>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const map = ref<any>(null)
+const map = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tileLayer = ref<any>(null)
+const tileLayer = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const markersLayer = ref<any>(null)
+const markersLayer = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const markers = ref<Map<number, any>>(new Map())
+const markers = shallowRef<Map<number, any>>(new Map())
+// Har mashina uchun oxirgi ikonka kaliti — o'zgarmagan bo'lsa setIcon chaqirilmaydi.
+const markerIconKeys = new Map<number, string>()
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeLine = ref<any>(null)
+const routeLine = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeArrows = ref<any[]>([])
+const routeArrows = shallowRef<any[]>([])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeStartMarker = ref<any>(null)
+const routeStartMarker = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const routeEndMarker = ref<any>(null)
+const routeEndMarker = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const spotMarkerRef = ref<any>(null)
+const spotMarkerRef = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const spotCircleRef = ref<any>(null)
+const spotCircleRef = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const animationLine = ref<any>(null)
+const animationLine = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const animationMarker = ref<any>(null)
+const animationMarker = shallowRef<any>(null)
 const animationFrameId = ref<number | null>(null)
 
 const currentTile = ref('osm')
@@ -57,11 +75,6 @@ const mapTiles = {
     name: 'OpenStreetMap',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
-  },
-  osm_dark: {
-    name: 'OSM Dark',
-    url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OSM contributors',
   },
   carto_light: {
     name: 'CartoDB Light',
@@ -111,10 +124,14 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
         </div>
   ` : ''
 
+  // Mobilda barmoq uchun kattaroq: 56px maydon / 40px tasvir.
+  const box = isDesktop.value ? 48 : 56
+  const img = isDesktop.value ? 32 : 40
+
   return L.divIcon({
     className: 'car-marker',
     html: `
-      <div style="position: relative; width: 48px; height: 48px;">
+      <div style="position: relative; width: ${box}px; height: ${box}px;">
         ${rippleHtml}
         ${speedBadgeHtml}
         <!-- Car icon -->
@@ -123,15 +140,15 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%) rotate(${angle}deg);
-          width: 32px;
-          height: 32px;
+          width: ${img}px;
+          height: ${img}px;
         ">
-          <img src="${carIconUrl}" width="32" height="32" style="display: block;" />
+          <img src="${carIconUrl}" width="${img}" height="${img}" style="display: block;" />
         </div>
       </div>
     `,
-    iconSize: [48, 48],
-    iconAnchor: [24, 24],
+    iconSize: [box, box],
+    iconAnchor: [box / 2, box / 2],
   })
 }
 
@@ -140,21 +157,32 @@ function getDefaultTile() {
   return uiStore.darkMode ? 'carto_dark' : 'osm'
 }
 
+// Tile layer yaratish — opsiyalar bitta joyda turishi uchun.
+function createTileLayer(tileKey: string) {
+  const tile = mapTiles[tileKey as keyof typeof mapTiles]
+
+  return L.tileLayer(tile.url, {
+    attribution: tile.attribution,
+    maxZoom: 19,
+    // Zoom animatsiyasi tugagach yuklanadi — aks holda tile'lar yarim yo'lda uziladi.
+    updateWhenZooming: false,
+    // Ko'rinish atrofida qo'shimcha tile saqlanadi, zoom/pan'da bo'sh joy qolmaydi.
+    keepBuffer: 4,
+  })
+}
+
 // Change tile layer
 function changeTile(tileKey: string) {
   if (!map.value) return
 
   currentTile.value = tileKey
-  const tile = mapTiles[tileKey as keyof typeof mapTiles]
 
   if (tileLayer.value) {
-    map.value.removeLayer(tileLayer.value )
+    map.value.removeLayer(tileLayer.value)
+    tileLayer.value = null
   }
 
-  tileLayer.value = L.tileLayer(tile.url, {
-    attribution: tile.attribution,
-    maxZoom: 19,
-  }).addTo(map.value)
+  tileLayer.value = createTileLayer(tileKey).addTo(map.value)
 }
 
 // Initialize map
@@ -167,20 +195,21 @@ function initMap() {
 
   map.value = L.map(mapContainer.value, {
     zoomControl: false,
-    zoomAnimation: false,
-    fadeAnimation: false,
-    markerZoomAnimation: false,
+    zoomAnimation: true,
+    fadeAnimation: true,
+    markerZoomAnimation: true,
+    // 4 darajagacha bo'lgan zoom o'zgarishi animatsiya bilan ketadi.
+    zoomAnimationThreshold: 4,
+    // circleMarker'lar SVG emas, canvas'da chiziladi — minglab nuqtada sezilarli farq.
+    preferCanvas: true,
+    // G'ildirak/trackpad bilan zoom yumshoqroq bo'lishi uchun.
+    wheelPxPerZoomLevel: 100,
   }).setView([defaultLat, defaultLng], defaultZoom)
 
   // Add initial tile layer based on dark mode
   const initialTile = getDefaultTile()
   currentTile.value = initialTile
-  const tile = mapTiles[initialTile as keyof typeof mapTiles]
-
-  tileLayer.value = L.tileLayer(tile.url, {
-    attribution: tile.attribution,
-    maxZoom: 19,
-  }).addTo(map.value)
+  tileLayer.value = createTileLayer(initialTile).addTo(map.value)
 
   // Create markers layer
   markersLayer.value = L.layerGroup().addTo(map.value)
@@ -193,6 +222,9 @@ function initMap() {
       uiStore.setMapZoom(map.value.getZoom())
     }
   })
+
+  // Xaritaga bosilganda mobil pastki varaq yig'iladi.
+  map.value.on('click', () => uiStore.requestSheetCollapse())
 
   // Show/hide route arrows based on zoom level
   map.value.on('zoomend', () => {
@@ -225,6 +257,7 @@ function updateMarkers() {
       }
     })
     markers.value.clear()
+    markerIconKeys.clear()
     return
   }
 
@@ -239,6 +272,7 @@ function updateMarkers() {
           // Ignore cleanup errors
         }
         markers.value.delete(carId)
+        markerIconKeys.delete(carId)
       }
     })
   }
@@ -256,10 +290,18 @@ function updateMarkers() {
     const speed = vehicle.speed || 0
     const isFollowed = vehiclesStore.followedVehicleId === vehicle.carId
 
+    // Tezlik faqat follow rejimida ikonkada ko'rinadi — aks holda kalitga kirmaydi.
+    const iconKey = isFollowed
+      ? `${angle}|${ignition}|${speed}|1|${isDesktop.value}`
+      : `${angle}|${ignition}|0|${isDesktop.value}`
+
     if (existingMarker) {
       existingMarker.setLatLng(position)
-      // Update icon with new angle, ignition status, speed and follow state
-      existingMarker.setIcon(createCarIcon(angle, ignition, speed, isFollowed))
+      // setIcon DOM elementini qaytadan yaratadi — faqat kerak bo'lganda.
+      if (markerIconKeys.get(vehicle.carId) !== iconKey) {
+        existingMarker.setIcon(createCarIcon(angle, ignition, speed, isFollowed))
+        markerIconKeys.set(vehicle.carId, iconKey)
+      }
     } else {
       const marker = L.marker(position, {
         icon: createCarIcon(angle, ignition, speed, isFollowed),
@@ -269,7 +311,7 @@ function updateMarkers() {
       marker.on('click', () => {
         vehiclesStore.selectVehicle(vehicle.carId)
         if (map.value) {
-          map.value.setView([vehicle.lat!, vehicle.lng!], 16)
+          map.value.flyTo([vehicle.lat!, vehicle.lng!], 16, { duration: 0.6 })
         }
         // Update all markers to reflect selection change
         updateMarkers()
@@ -277,6 +319,7 @@ function updateMarkers() {
 
       marker.addTo(markersLayer.value!)
       markers.value.set(vehicle.carId, marker)
+      markerIconKeys.set(vehicle.carId, iconKey)
     }
   })
 
@@ -290,6 +333,7 @@ function updateMarkers() {
         // Ignore cleanup errors
       }
       markers.value.delete(carId)
+      markerIconKeys.delete(carId)
     }
   })
 }
@@ -304,7 +348,7 @@ function fitAllMarkers() {
       .map((v) => [v.lat!, v.lng!] as L.LatLngTuple)
   )
 
-  map.value.fitBounds(bounds, { padding: [50, 50] })
+  map.value.flyToBounds(bounds, { padding: [50, 50], duration: 0.8 })
 }
 
 // Format route date for display
@@ -422,10 +466,7 @@ function drawSpotMarker() {
   }).addTo(map.value)
 
   // Center map on spot marker
-  map.value.setView([spot.lat, spot.lng], 17, {
-    animate: true,
-    duration: 0.5,
-  })
+  map.value.flyTo([spot.lat, spot.lng], 17, { duration: 0.6 })
 }
 
 // Clear spot marker from map
@@ -747,7 +788,7 @@ function drawRouteLine() {
   // Fit map to route bounds
   if (latLngs.length > 0) {
     const bounds = L.latLngBounds(latLngs)
-    map.value.fitBounds(bounds, { padding: [50, 50] })
+    map.value.flyToBounds(bounds, { padding: [50, 50], duration: 0.8 })
   }
 
   // Update arrows visibility based on current zoom
@@ -826,13 +867,13 @@ function clearRouteLine() {
 
 // Raw positions analysis visualization
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rawPositionMarkers = ref<any[]>([])
+const rawPositionMarkers = shallowRef<any[]>([])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rawPositionLine = ref<any>(null)
+const rawPositionLine = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rawStartMarker = ref<any>(null)
+const rawStartMarker = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rawEndMarker = ref<any>(null)
+const rawEndMarker = shallowRef<any>(null)
 
 function getRawPositionColor(pos: { ignition: boolean; speed: number }): string {
   if (!pos.ignition) return '#ef4444'    // Qizil - ignition OFF
@@ -871,11 +912,14 @@ function drawRawPositions() {
       fillOpacity: 0.9,
     }).addTo(map.value!)
 
-    const time = new Date(p.recordedAt).toLocaleTimeString()
-    const sat = (p as any).satellites ?? '?'
-    const angle = (p as any).angle ?? '?'
+    // Popup HTML'i faqat ochilganda quriladi.
     marker.bindPopup(
-      `<b>#${num} ${time}</b><br>Speed: ${p.speed} km/h<br>Ignition: ${p.ignition ? 'ON' : 'OFF'}<br>Sat: ${sat} | Angle: ${angle}<br>${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+      () => {
+        const time = new Date(p.recordedAt).toLocaleTimeString()
+        const sat = (p as any).satellites ?? '?'
+        const angle = (p as any).angle ?? '?'
+        return `<b>#${num} ${time}</b><br>Speed: ${p.speed} km/h<br>Ignition: ${p.ignition ? 'ON' : 'OFF'}<br>Sat: ${sat} | Angle: ${angle}<br>${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`
+      },
       { closeButton: true, autoClose: true, className: 'raw-position-popup' }
     )
 
@@ -905,7 +949,7 @@ function drawRawPositions() {
   // Fit bounds (offset left for sidebar)
   if (latLngs.length > 0) {
     const bounds = L.latLngBounds(latLngs)
-    map.value.fitBounds(bounds, { paddingTopLeft: [480, 50], paddingBottomRight: [50, 50] })
+    map.value.flyToBounds(bounds, { ...routePadding(), duration: 0.8 })
   }
 }
 
@@ -946,7 +990,6 @@ watch(
     // Eski markerlar to'liq tozalangandan keyin yangilarini chizish
     setTimeout(() => drawRawPositions(), 50)
   },
-  { deep: true }
 )
 
 // Watch for route points changes
@@ -957,7 +1000,6 @@ watch(
     // Update markers to hide/show the route vehicle marker
     updateMarkers()
   },
-  { deep: true }
 )
 
 // Center on selected vehicle from sidebar and update marker selection
@@ -970,7 +1012,7 @@ watch(
     if (carId && map.value) {
       const vehicle = vehiclesStore.vehicles.find((v) => v.carId === carId)
       if (vehicle?.lat && vehicle?.lng) {
-        map.value.setView([vehicle.lat, vehicle.lng], 16)
+        map.value.flyTo([vehicle.lat, vehicle.lng], 16, { duration: 0.6 })
       }
     }
   }
@@ -1010,10 +1052,7 @@ watch(
     if (carId && map.value) {
       const vehicle = vehiclesStore.vehicles.find((v) => v.carId === carId)
       if (vehicle?.lat && vehicle?.lng) {
-        map.value.setView([vehicle.lat, vehicle.lng], 17, {
-          animate: true,
-          duration: 0.5,
-        })
+        map.value.flyTo([vehicle.lat, vehicle.lng], 17, { duration: 0.6 })
       }
     }
   }
@@ -1023,10 +1062,16 @@ watch(
 watch(
   () => uiStore.darkMode,
   (isDark) => {
-    if (currentTile.value === 'osm' || currentTile.value === 'carto_dark' || currentTile.value === 'carto_light' || currentTile.value === 'osm_dark') {
+    if (currentTile.value === 'osm' || currentTile.value === 'carto_dark' || currentTile.value === 'carto_light') {
       changeTile(isDark ? 'carto_dark' : 'osm')
     }
   }
+)
+
+// Sheet'dan kelgan "barchasini ko'rsatish" so'rovi
+watch(
+  () => uiStore.fitAllRequest,
+  () => fitAllMarkers()
 )
 
 // Watch for markersHidden state (tab switching)
@@ -1058,11 +1103,24 @@ watch(
   }
 )
 
+// Konteyner o'lchami o'zgarsa Leaflet eski o'lchamda qolib ketmasligi uchun.
+let resizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
   initMap()
+
+  if (mapContainer.value) {
+    resizeObserver = new ResizeObserver(() => {
+      map.value?.invalidateSize({ debounceMoveend: true })
+    })
+    resizeObserver.observe(mapContainer.value)
+  }
 })
 
 onUnmounted(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+
   if (!map.value) return
 
   // Stop any ongoing animations
@@ -1178,19 +1236,19 @@ onUnmounted(() => {
     />
 
     <!-- Follow Mode Info Card -->
-    <Transition name="follow-card">
-      <div
-        v-if="isFollowing"
-        class="absolute top-5 left-1/2 -translate-x-1/2 z-[1001]"
-      >
-        <div class="flex items-center gap-3 bg-blue-500 text-white pl-4 pr-2 py-2 rounded-full shadow-lg">
-        <div class="flex items-center gap-2">
-          <Navigation class="h-4 w-4 animate-pulse" />
-          <span class="text-sm font-medium">{{ t('map.following') }}:</span>
-          <span class="text-sm font-bold">{{ followedVehicleName }}</span>
+    <div
+      v-if="isFollowing"
+      class="follow-card-in absolute top-3 md:top-5 left-1/2 -translate-x-1/2 z-[1001] max-w-[calc(100vw_-_8rem)] md:max-w-none"
+    >
+        <div class="flex items-center gap-2 md:gap-3 bg-blue-500 text-white pl-3 md:pl-4 pr-1.5 md:pr-2 py-1.5 md:py-2 rounded-full shadow-lg">
+        <div class="flex items-center gap-1.5 md:gap-2 min-w-0">
+          <Navigation class="h-4 w-4 shrink-0 animate-pulse" />
+          <!-- Yorliq mobilda yashirin — ikonka o'zi tushuntiradi -->
+          <span class="hidden md:inline text-sm font-medium">{{ t('map.following') }}:</span>
+          <span class="text-xs md:text-sm font-bold truncate">{{ followedVehicleName }}</span>
         </div>
         <button
-          class="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors pointer-events-auto"
+          class="p-2 md:p-1.5 shrink-0 rounded-full bg-white/20 hover:bg-white/30 transition-colors pointer-events-auto"
           :title="t('map.unfollow')"
           @click="vehiclesStore.unfollowVehicle()"
         >
@@ -1198,7 +1256,6 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
-    </Transition>
 
     <!-- Route Loading Overlay -->
     <div
@@ -1209,6 +1266,34 @@ onUnmounted(() => {
         <Loader2 class="h-8 w-8 animate-spin text-primary" />
         <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
       </div>
+    </div>
+
+    <!-- Mobil: marshrut boshqaruvi xarita ustida.
+         Varaq yig'ilgach play tugmasi qo'l yetmas joyda qolmasligi uchun. -->
+    <div
+      v-if="!isDesktop && hasRoute"
+      class="absolute left-4 z-[1000] flex flex-col gap-2"
+      :style="controlsStyle"
+    >
+      <button
+        class="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white transition-colors"
+        :class="vehiclesStore.routeAnimating ? 'bg-red-500 active:bg-red-600' : 'bg-green-500 active:bg-green-600'"
+        :aria-label="vehiclesStore.routeAnimating ? t('common.stop') : t('common.play')"
+        @click="vehiclesStore.routeAnimating
+          ? vehiclesStore.stopRouteAnimation()
+          : vehiclesStore.startRouteAnimation()"
+      >
+        <Square v-if="vehiclesStore.routeAnimating" class="h-4 w-4" />
+        <Play v-else class="h-4 w-4 ml-0.5" />
+      </button>
+
+      <button
+        class="w-11 h-11 rounded-full bg-background shadow-lg flex items-center justify-center text-destructive"
+        :aria-label="t('map.clearRoute')"
+        @click="vehiclesStore.clearRoute(); clearRouteLine()"
+      >
+        <X class="h-5 w-5" />
+      </button>
     </div>
 
     <!-- Route Info Card - only show for Live tab routes -->
@@ -1243,12 +1328,13 @@ onUnmounted(() => {
     </div>
 
     <!-- Map Controls -->
-    <div class="absolute bottom-6 right-4 flex flex-col gap-2 z-[1000]">
+    <!-- Mobilda pastki varaq peek balandligidan yuqorida turadi -->
+    <div class="absolute right-4 flex flex-col gap-2 z-[1000]" :style="controlsStyle">
       <!-- Tile Selector -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <button
-            class="w-10 h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+            class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
             :title="t('map.layers')"
           >
             <Layers class="h-5 w-5" />
@@ -1269,7 +1355,7 @@ onUnmounted(() => {
 
       <!-- Fit All -->
       <button
-        class="w-10 h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
         :title="t('map.fitAll')"
         @click="fitAllMarkers"
       >
@@ -1278,7 +1364,7 @@ onUnmounted(() => {
 
       <!-- Zoom In -->
       <button
-        class="w-10 h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
         :title="t('map.zoomIn')"
         @click="map?.zoomIn()"
       >
@@ -1287,7 +1373,7 @@ onUnmounted(() => {
 
       <!-- Zoom Out -->
       <button
-        class="w-10 h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
         :title="t('map.zoomOut')"
         @click="map?.zoomOut()"
       >
@@ -1413,6 +1499,32 @@ onUnmounted(() => {
   animation: follow-border-glow 2s ease-in-out infinite;
 }
 
+/* Mobilda ramka ingichkaroq va yorug'lik yumshoqroq — joy tejaydi, GPU'ni kam yuklaydi */
+@media (max-width: 767px) {
+  .follow-mode-border {
+    border-width: 3px;
+    animation-name: follow-border-glow-sm;
+  }
+}
+
+@keyframes follow-border-glow-sm {
+  0%, 100% {
+    border-color: #2563eb;
+    box-shadow: 0 0 8px #3b82f6, inset 0 0 16px rgba(59, 130, 246, 0.12);
+  }
+  50% {
+    border-color: #93c5fd;
+    box-shadow: 0 0 14px #60a5fa, inset 0 0 24px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Harakatni kamaytirish sozlamasi yoqilgan bo'lsa — pulsatsiya o'chadi */
+@media (prefers-reduced-motion: reduce) {
+  .follow-mode-border {
+    animation: none;
+  }
+}
+
 @keyframes follow-border-glow {
   0%, 100% {
     border-color: #2563eb;
@@ -1432,23 +1544,14 @@ onUnmounted(() => {
   }
 }
 
-/* Follow mode card transition */
-.follow-card-enter-active {
-  transition: all 0.3s ease-out;
+/* Bir martalik kirish animatsiyasi — qayta render'da qotib qolmaydi */
+.follow-card-in {
+  animation: follow-card-fade 0.3s ease-out;
 }
 
-.follow-card-leave-active {
-  transition: all 0.2s ease-in;
-}
-
-.follow-card-enter-from {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-20px) scale(0.9);
-}
-
-.follow-card-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-10px) scale(0.95);
+@keyframes follow-card-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Spot marker styles - teardrop design */

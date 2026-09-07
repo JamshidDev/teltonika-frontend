@@ -209,7 +209,10 @@
     "actions": "Amallar",
     "comingSoon": "Tez orada ishga tushadi",
     "today": "Bugun",
-    "yesterday": "Kecha"
+    "yesterday": "Kecha",
+    "open": "Ochish",
+    "play": "Ijro etish",
+    "stop": "To'xtatish"
   },
   "time": {
     "now": "hozir",
@@ -262,5 +265,10 @@
     "parking_candidate": "Dvigatel o'chdi",
     "parking": "Parking",
     "minutes": "daq"
+  },
+  "mobileNav": {
+    "vehicles": "Mashinalar",
+    "route": "Yo'l",
+    "history": "Tarix"
   }
 }

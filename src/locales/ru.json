@@ -209,7 +209,10 @@
     "actions": "Действия",
     "comingSoon": "Скоро будет доступно",
     "today": "Сегодня",
-    "yesterday": "Вчера"
+    "yesterday": "Вчера",
+    "open": "Открыть",
+    "play": "Воспроизвести",
+    "stop": "Остановить"
   },
   "time": {
     "now": "сейчас",
@@ -262,5 +265,10 @@
     "parking_candidate": "Двигатель выкл",
     "parking": "Парковка",
     "minutes": "мин"
+  },
+  "mobileNav": {
+    "vehicles": "Машины",
+    "route": "Маршрут",
+    "history": "История"
   }
 }

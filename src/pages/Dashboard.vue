@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import MapContainer from '@/components/map/MapContainer.vue'
 import VehicleSidebar from '@/components/sidebar/VehicleSidebar.vue'
+import VehicleBottomSheet from '@/components/sidebar/VehicleBottomSheet.vue'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +28,14 @@ const vehiclesStore = useVehiclesStore()
 const authStore = useAuthStore()
 const uiStore = useUiStore()
 
+const { isDesktop } = useBreakpoint()
+
 const stats = computed(() => vehiclesStore.vehicleStats)
+
+// Sahifa ma'lumot egasi — yon panel yoki varaq render bo'lishidan qat'i nazar yuklanadi.
+onMounted(() => {
+  vehiclesStore.fetchVehicles()
+})
 const mapZoom = computed(() => uiStore.mapZoom)
 
 function handleLogout() {
@@ -39,13 +48,16 @@ function handleLogout() {
     <!-- Map as background -->
     <MapContainer class="absolute inset-0" />
 
-    <!-- Vehicle Sidebar - floating card -->
-    <div class="absolute left-5 top-5 z-10 h-[calc(100vh-120px)]">
+    <!-- Desktop: suzuvchi yon panel -->
+    <div v-if="isDesktop" class="absolute left-5 top-5 z-10 h-[calc(100vh-120px)]">
       <VehicleSidebar class="h-full rounded-xl shadow-xl overflow-hidden" />
     </div>
 
+    <!-- Mobil: to'liq xarita ustida pastki varaq -->
+    <VehicleBottomSheet v-else />
+
     <!-- Top right controls - vertical -->
-    <div class="absolute top-5 right-5 flex flex-col items-center gap-2 z-10">
+    <div class="absolute top-3 right-3 md:top-5 md:right-5 flex flex-col items-center gap-2 z-10">
       <!-- Profile Button -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
@@ -71,8 +83,8 @@ function handleLogout() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <!-- Stats - vertical circle buttons -->
-      <TooltipProvider>
+      <!-- Stats — mobilda pastki varaqda ko'rsatiladi -->
+      <TooltipProvider v-if="isDesktop">
         <Tooltip>
           <TooltipTrigger as-child>
             <button class="w-10 h-10 rounded-full bg-background shadow-lg flex items-center justify-center cursor-default">

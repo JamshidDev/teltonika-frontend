@@ -68,7 +68,8 @@ function navigateTo(item: (typeof navItems.value)[0]) {
 
 <template>
   <nav
-    class="fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border flex items-center justify-around px-4 z-50"
+    class="fixed bottom-0 left-0 right-0 bg-background border-t border-border flex items-center justify-around px-4 z-50"
+    style="height: calc(4rem + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom)"
   >
     <button
       v-for="item in navItems"

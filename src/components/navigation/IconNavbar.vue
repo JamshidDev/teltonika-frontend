@@ -66,7 +66,7 @@ function navigateTo(item: { key: TabType; route: string }) {
 </script>
 
 <template>
-  <aside class="w-16 h-full bg-[#1e3a5f] flex flex-col items-center py-3 flex-shrink-0">
+  <aside class="w-16 h-full bg-[#1e3a5f] hidden md:flex flex-col items-center py-3 flex-shrink-0">
     <!-- Logo -->
     <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mb-6">
       <MapPin class="h-5 w-5 text-primary-foreground" />

@@ -209,7 +209,10 @@
     "actions": "Actions",
     "comingSoon": "Coming soon",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "open": "Open",
+    "play": "Play",
+    "stop": "Stop"
   },
   "time": {
     "now": "now",
@@ -262,5 +265,10 @@
     "parking_candidate": "Engine off",
     "parking": "Parking",
     "minutes": "min"
+  },
+  "mobileNav": {
+    "vehicles": "Vehicles",
+    "route": "Route",
+    "history": "History"
   }
 }

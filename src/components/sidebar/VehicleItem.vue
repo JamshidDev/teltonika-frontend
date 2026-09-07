@@ -108,7 +108,7 @@ function toggleFollow() {
 
 <template>
   <div
-    class="p-2 cursor-pointer hover:bg-accent transition-colors rounded-lg border border-border"
+    class="p-1.5 md:p-2 cursor-pointer hover:bg-accent transition-colors rounded-lg border border-border"
     :style="isSelected ? { borderLeftWidth: '6px', borderLeftColor: '#3b82f6', backgroundColor: 'hsl(var(--accent))' } : {}"
     @click="selectVehicle"
   >
@@ -123,7 +123,7 @@ function toggleFollow() {
       <div class="flex-shrink-0">
         <div
           :class="[
-            'w-10 h-10 rounded-full flex items-center justify-center',
+            'w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center',
             motionDisplay?.icon === 'play'
               ? 'bg-green-100 dark:bg-green-900'
               : motionDisplay?.icon === 'pause'
@@ -133,7 +133,7 @@ function toggleFollow() {
                   : 'bg-gray-100 dark:bg-gray-800',
           ]"
         >
-          <img :src="carIcon" alt="car" class="h-6 w-6" />
+          <img :src="carIcon" alt="car" class="h-5 w-5 md:h-6 md:w-6" />
         </div>
       </div>
 
@@ -152,7 +152,7 @@ function toggleFollow() {
             <!-- Follow button -->
             <button
               :class="[
-                'p-1 rounded-md transition-colors',
+                'p-2 md:p-1 rounded-md transition-colors',
                 isFollowing
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-accent'
@@ -164,7 +164,7 @@ function toggleFollow() {
             </button>
             <!-- Route button — show today's route -->
             <button
-              class="p-1 rounded-md hover:bg-accent transition-colors"
+              class="p-2 md:p-1 rounded-md hover:bg-accent transition-colors"
               :title="t('history.today')"
               @click.stop="showRoute('today')"
             >
@@ -178,7 +178,7 @@ function toggleFollow() {
             <!-- Motion status badge -->
             <span
               v-if="motionDisplay"
-              :class="['inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-semibold', motionDisplay.color]"
+              :class="['inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] md:text-[9px] font-semibold', motionDisplay.color]"
             >
               <CirclePlay v-if="motionDisplay.icon === 'play'" class="h-2.5 w-2.5" />
               <CirclePause v-if="motionDisplay.icon === 'pause'" class="h-2.5 w-2.5" />
@@ -196,7 +196,7 @@ function toggleFollow() {
               />
               <span
                 :class="[
-                  'font-medium text-[9px]',
+                  'font-medium text-[10px] md:text-[9px]',
                   speed > 0 ? 'text-green-600' : 'text-muted-foreground',
                 ]"
               >
@@ -206,7 +206,7 @@ function toggleFollow() {
           </div>
 
           <!-- Last update -->
-          <span class="text-[9px] text-muted-foreground">
+          <span class="text-[10px] md:text-[9px] text-muted-foreground">
             {{ lastUpdate }}
           </span>
         </div>

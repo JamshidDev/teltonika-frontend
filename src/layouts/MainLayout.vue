@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import IconNavbar from '@/components/navigation/IconNavbar.vue'
 import TopNavbar from '@/components/navigation/TopNavbar.vue'
+import MobileNavDrawer from '@/components/navigation/MobileNavDrawer.vue'
 
 const route = useRoute()
 
@@ -11,7 +12,7 @@ const isDashboard = computed(() => route.path === '/dashboard' || route.path ===
 
 <template>
   <div class="h-screen flex overflow-hidden bg-background">
-    <!-- Left Icon Navigation -->
+    <!-- Left Icon Navigation (faqat desktop) -->
     <IconNavbar />
 
     <!-- Main Area -->
@@ -24,5 +25,8 @@ const isDashboard = computed(() => route.path === '/dashboard' || route.path ===
         <router-view />
       </main>
     </div>
+
+    <!-- Mobil navigatsiya — 10 ta sahifaning hammasi chapdan ochiladi -->
+    <MobileNavDrawer />
   </div>
 </template>

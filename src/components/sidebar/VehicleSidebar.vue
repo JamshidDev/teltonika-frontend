@@ -44,8 +44,22 @@ const carsStore = useCarsStore()
 const uiStore = useUiStore()
 
 // Tabs
-type SidebarTab = 'live' | 'scheduled' | 'history'
-const activeTab = ref<SidebarTab>('live')
+export type SidebarTab = 'live' | 'scheduled' | 'history'
+
+const props = defineProps<{
+  tab?: SidebarTab
+  hideTabs?: boolean
+}>()
+
+const activeTab = ref<SidebarTab>(props.tab ?? 'live')
+
+// Mobil pastki menyudan kelgan tanlov.
+watch(
+  () => props.tab,
+  (t) => {
+    if (t && t !== activeTab.value) activeTab.value = t
+  }
+)
 const isBodyCollapsed = ref(false)
 
 const tabs = computed(() => [
@@ -197,18 +211,6 @@ function formatDuration(seconds: number): string {
 }
 
 // Format date+time from UTC ISO string to local (with date)
-function formatTime(isoString: string): string {
-  const date = new Date(isoString)
-  return date.toLocaleString(uiStore.language, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
 // Format only time (HH:mm:ss) — period tanlangan bo'lsa sana kerak emas
 function formatTimeOnly(isoString: string): string {
   const date = new Date(isoString)
@@ -492,15 +494,15 @@ function handleScroll(event: Event) {
 }
 
 onMounted(() => {
-  vehiclesStore.fetchVehicles()
+  // fetchVehicles() Dashboard'da chaqiriladi — sidebar mount bo'lishiga bog'liq bo'lmasligi uchun.
   carsStore.fetchCars()
 })
 </script>
 
 <template>
-  <aside class="w-[420px] h-full bg-background flex flex-col">
+  <aside class="w-full md:w-[420px] h-full bg-background flex flex-col">
     <!-- Header with Tabs -->
-    <div class="border-b border-border">
+    <div v-if="!hideTabs" class="border-b border-border">
       <TooltipProvider :delay-duration="0">
         <div class="flex">
           <Tooltip v-for="tab in tabs" :key="tab.key">

@@ -215,3 +215,10 @@ html {
 .leaflet-zoom-anim .leaflet-zoom-hide {
   visibility: hidden;
 }
+
+/* Jadvallar mobilda gorizontal scroll — qatorlar siqilmasin */
+.table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}

@@ -134,14 +134,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col p-6">
+  <div class="h-full flex flex-col p-4 md:p-6">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
           <Cpu class="h-5 w-5 text-primary" />
         </div>
-        <h1 class="text-2xl font-bold">{{ t('device.title') }}</h1>
+        <h1 class="text-xl md:text-2xl font-bold">{{ t('device.title') }}</h1>
       </div>
 
       <Button @click="openCreateDialog">
@@ -164,8 +164,8 @@ onMounted(() => {
       </div>
 
       <!-- Table content -->
-      <div class="flex-1 overflow-auto">
-        <table class="w-full table-fixed">
+      <div class="flex-1 overflow-auto table-scroll">
+        <table class="w-full min-w-[620px] md:min-w-0 table-fixed">
           <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
               <th class="text-left px-4 py-3 font-medium text-sm w-[80px] min-w-[80px]">ID</th>

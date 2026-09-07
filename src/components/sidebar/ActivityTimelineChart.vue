@@ -25,6 +25,8 @@ const segments = computed(() => {
   return props.timeline.map((item, index) => {
     let startTime: Date
     let endTime: Date
+    // endAt = null → hodisa hali tugamagan, hozirgi vaqtgacha cho'ziladi.
+    let ongoing = false
 
     if (item.type === 'route') {
       if (item.points.length === 0) return null
@@ -32,7 +34,8 @@ const segments = computed(() => {
       endTime = new Date(item.points[item.points.length - 1]!.recordedAt)
     } else {
       startTime = new Date(item.startAt)
-      endTime = new Date(item.endAt)
+      ongoing = item.endAt === null
+      endTime = ongoing ? new Date() : new Date(item.endAt!)
     }
 
     const dayStart = new Date(startTime)
@@ -59,6 +62,7 @@ const segments = computed(() => {
       index,
       startTime,
       endTime,
+      ongoing,
     }
   }).filter(Boolean) as {
     left: number
@@ -68,6 +72,7 @@ const segments = computed(() => {
     index: number
     startTime: Date
     endTime: Date
+    ongoing: boolean
   }[]
 })
 
@@ -90,11 +95,12 @@ const popoverData = computed(() => {
   const item = props.timeline[seg.index]
   if (!item) return null
 
+  // duration = null (davom etayotgan hodisa) → segment uzunligidan hisoblanadi.
   const durationSeconds = item.type === 'route'
     ? (item.points.length >= 2
         ? (new Date(item.points[item.points.length - 1]!.recordedAt).getTime() - new Date(item.points[0]!.recordedAt).getTime()) / 1000
         : 0)
-    : item.duration
+    : (item.duration ?? (seg.endTime.getTime() - seg.startTime.getTime()) / 1000)
 
   // Calculate time at cursor position
   const pos = linePosition.value ?? 0
@@ -108,7 +114,7 @@ const popoverData = computed(() => {
     type: seg.type,
     cursorTime,
     begin: formatTimeHMS(seg.startTime),
-    end: formatTimeHMS(seg.endTime),
+    end: seg.ongoing ? '—' : formatTimeHMS(seg.endTime),
     duration: formatDurationHMS(durationSeconds),
   }
 })
