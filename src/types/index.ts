@@ -251,6 +251,7 @@ export interface TimelineParking {
 export interface TimelineRoute {
   type: 'route'
   points: TimelineRoutePoint[]
+  distance: number // total distance in km, calculated by the backend
 }
 
 export interface TimelineRoutePoint {

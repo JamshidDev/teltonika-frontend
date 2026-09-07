@@ -29,3 +29,7 @@ dist-ssr
 
 # Claude Code sessiya fayllari
 .claude/
+
+# Noto'g'ri pnpm buyrug'idan qolgan bo'sh fayllar
+gps-tracking-frontend@1.0.0
+vue-tsc
