@@ -5,7 +5,7 @@ import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useUiStore } from '@/stores/ui.store'
 import { formatRelativeTime, formatSpeed } from '@/lib/utils'
 import { Gauge, LocateFixed, Navigation, CirclePlay, CirclePause, CircleParking } from 'lucide-vue-next'
-import carIcon from '@/assets/car-icon.svg'
+import carIcon from '@/assets/taxi-marker.svg'
 import type { VehicleWithPosition } from '@/types'
 
 const props = defineProps<{
@@ -33,13 +33,13 @@ const motionDisplay = computed(() => {
   const s = props.vehicle.status
   if (!s) return null
   if (s === 'moving' || s === 'stop_candidate') {
-    return { label: 'MOVING', color: 'text-green-600 bg-green-100 dark:bg-green-900/50', icon: 'play' }
+    return { label: 'MOVING', color: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/50', icon: 'play' }
   }
   if (s === 'stopped' || s === 'parking_candidate') {
-    return { label: 'STOP', color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/50', icon: 'pause' }
+    return { label: 'STOP', color: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/50', icon: 'pause' }
   }
   if (s === 'parking') {
-    return { label: 'PARKING', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/50', icon: 'parking' }
+    return { label: 'PARKING', color: 'text-foreground/70 bg-secondary dark:bg-secondary', icon: 'parking' }
   }
   return null
 })
@@ -108,8 +108,8 @@ function toggleFollow() {
 
 <template>
   <div
-    class="p-1.5 md:p-2 cursor-pointer hover:bg-accent transition-colors rounded-lg border border-border"
-    :style="isSelected ? { borderLeftWidth: '6px', borderLeftColor: '#3b82f6', backgroundColor: 'hsl(var(--accent))' } : {}"
+    class="p-2 cursor-pointer transition-colors rounded-xl border"
+    :class="isSelected ? 'border-primary bg-primary/10' : 'border-border hover:bg-accent/60'"
     @click="selectVehicle"
   >
     <!-- Collapsed view -->
@@ -125,12 +125,12 @@ function toggleFollow() {
           :class="[
             'w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center',
             motionDisplay?.icon === 'play'
-              ? 'bg-green-100 dark:bg-green-900'
+              ? 'bg-emerald-100 dark:bg-emerald-900/60'
               : motionDisplay?.icon === 'pause'
-                ? 'bg-orange-100 dark:bg-orange-900'
+                ? 'bg-amber-100 dark:bg-amber-900/60'
                 : motionDisplay?.icon === 'parking'
-                  ? 'bg-blue-100 dark:bg-blue-900'
-                  : 'bg-gray-100 dark:bg-gray-800',
+                  ? 'bg-secondary dark:bg-secondary'
+                  : 'bg-muted',
           ]"
         >
           <img :src="carIcon" alt="car" class="h-5 w-5 md:h-6 md:w-6" />
@@ -152,7 +152,7 @@ function toggleFollow() {
             <!-- Follow button -->
             <button
               :class="[
-                'p-2 md:p-1 rounded-md transition-colors',
+                'p-2 md:p-1 rounded-lg transition-colors',
                 isFollowing
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-accent'
@@ -164,7 +164,7 @@ function toggleFollow() {
             </button>
             <!-- Route button — show today's route -->
             <button
-              class="p-2 md:p-1 rounded-md hover:bg-accent transition-colors"
+              class="p-2 md:p-1 rounded-lg hover:bg-accent transition-colors"
               :title="t('history.today')"
               @click.stop="showRoute('today')"
             >

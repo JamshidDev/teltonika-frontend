@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('user', JSON.stringify(response.user))
 
       // Redirect to dashboard
-      router.push({ name: 'dashboard' })
+      router.push({ name: 'map' })
 
       return true
     } catch (err: unknown) {

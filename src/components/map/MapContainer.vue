@@ -7,24 +7,25 @@ import { useVehiclesStore } from '@/stores/vehicles.store'
 import { useUiStore } from '@/stores/ui.store'
 import { useVehiclesRealtime } from '@/composables/useVehiclesRealtime'
 import { useBreakpoint } from '@/composables/useBreakpoint'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Layers, Plus, Minus, Locate, X, Loader2, Navigation, XCircle, Play, Square } from 'lucide-vue-next'
-import carIconUrl from '@/assets/car-icon.svg'
+import { mapTiles } from '@/config/mapTiles'
+import { toast } from 'vue-sonner'
+import { Locate, LocateFixed, X, Loader2, Play, Square } from 'lucide-vue-next'
+import carIconUrl from '@/assets/taxi-marker.svg'
 
 const { t } = useI18n()
 const { isDesktop } = useBreakpoint()
 
 // Desktopda chapdagi panel, mobilda pastdagi varaq marshrutni to'smasligi uchun.
-// VehicleBottomSheet dagi SNAP_PEEK (0.1) bilan mos bo'lishi shart.
-const SHEET_PEEK_DVH = 10
+// Suzuvchi pastki menyu balandligi (~65px) + pastdan 10px ajralish.
+const FLOATING_NAV_PX = 85
+
+// Mobil ekran kichik — kuzatuvda kengroq ko'rinish kerak (desktopdan 2 daraja kam).
+const followZoom = computed(() => (isDesktop.value ? 17 : 15))
 
 const controlsStyle = computed(() => ({
-  bottom: isDesktop.value ? '1.5rem' : `calc(${SHEET_PEEK_DVH}dvh + 1.5rem)`,
+  bottom: isDesktop.value
+    ? '1.5rem'
+    : `calc(${FLOATING_NAV_PX}px + env(safe-area-inset-bottom))`,
 }))
 
 function routePadding() {
@@ -71,30 +72,6 @@ const currentTile = ref('light')
 
 // Map tiles configuration
 // Tile serveri — o'z infratuzilmamiz (TileServer GL). API kalit talab qilmaydi.
-const TILE_BASE = (import.meta.env.VITE_TILE_BASE_URL || 'https://osm.megago.uz').replace(/\/$/, '')
-
-const mapTiles = {
-  light: {
-    name: 'MegaMaps Light',
-    url: `${TILE_BASE}/ts/styles/client-light/{z}/{x}/{y}{r}.png`,
-    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
-  },
-  dark: {
-    name: 'MegaMaps Dark',
-    url: `${TILE_BASE}/ts/styles/client-dark/{z}/{x}/{y}{r}.png`,
-    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
-  },
-  satellite: {
-    name: 'Satellite',
-    url: `${TILE_BASE}/ts/data/satellite/{z}/{x}/{y}.jpg`,
-    attribution: '&copy; Google',
-  },
-  osm: {
-    name: 'OpenStreetMap',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; OpenStreetMap contributors',
-  },
-}
 
 // Get all vehicles with positions
 const vehiclesWithPositions = computed(() =>
@@ -106,10 +83,18 @@ const hasRoute = computed(() => vehiclesStore.routePoints.length > 0)
 
 // Check if follow mode is active
 const isFollowing = computed(() => vehiclesStore.followedVehicleId !== null)
-const followedVehicleName = computed(() => {
+const followedVehicle = computed(() => {
   if (!vehiclesStore.followedVehicleId) return null
-  const vehicle = vehiclesStore.vehicles.find(v => v.carId === vehiclesStore.followedVehicleId)
-  return vehicle?.name || null
+  return vehiclesStore.vehicles.find((v) => v.carId === vehiclesStore.followedVehicleId) ?? null
+})
+
+// Nomlarda davlat raqami takrorlanadi ("Labo 3 124 KBA") — badge'da raqam
+// alohida chipda ko'rsatilgani uchun nomdan raqamga o'xshash qismni olib tashlaymiz.
+const followedName = computed(() => {
+  const name = followedVehicle.value?.name
+  if (!name) return ''
+  const cleaned = name.replace(/\b\d{1,3}\s*\d{3}\s*[A-Za-z]{3}\b/g, ' ').replace(/\s{2,}/g, ' ').trim()
+  return cleaned || name
 })
 
 // Create marker icon with car icon and rotation
@@ -339,6 +324,59 @@ function updateMarkers() {
       markerIconKeys.delete(carId)
     }
   })
+}
+
+// --- Foydalanuvchi joylashuvi ---
+const userMarker = shallowRef<any>(null)
+const userCircle = shallowRef<any>(null)
+const locating = ref(false)
+
+function locateMe() {
+  if (!map.value) return
+  if (!navigator.geolocation) {
+    toast.error(t('map.locationError'))
+    return
+  }
+
+  locating.value = true
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      locating.value = false
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords
+
+      safeRemoveLayer(userMarker.value)
+      safeRemoveLayer(userCircle.value)
+
+      // Aniqlik doirasi
+      userCircle.value = L.circle([lat, lng], {
+        radius: accuracy,
+        color: '#e9b900',
+        fillColor: '#ffd21c',
+        fillOpacity: 0.15,
+        weight: 1,
+      }).addTo(map.value)
+
+      userMarker.value = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: 'user-location',
+          html:
+            '<div class="user-ripple"></div>' +
+            '<div class="user-ripple user-ripple-delay"></div>' +
+            '<div class="user-location-dot"></div>',
+          iconSize: [56, 56],
+          iconAnchor: [28, 28],
+        }),
+        zIndexOffset: 1500,
+      }).addTo(map.value)
+
+      map.value.flyTo([lat, lng], 16, { duration: 0.8 })
+    },
+    (err) => {
+      locating.value = false
+      toast.error(err.code === err.PERMISSION_DENIED ? t('map.locationDenied') : t('map.locationError'))
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+  )
 }
 
 // Fit all markers in view
@@ -743,7 +781,7 @@ function drawRouteLine() {
   // Only draw line if we have at least 2 points
   if (latLngs.length >= 2) {
     routeLine.value = L.polyline(latLngs, {
-      color: '#3b82f6',
+      color: '#ffd21c',
       weight: 5,
       opacity: 1,
     }).addTo(map.value)
@@ -1055,7 +1093,7 @@ watch(
     if (carId && map.value) {
       const vehicle = vehiclesStore.vehicles.find((v) => v.carId === carId)
       if (vehicle?.lat && vehicle?.lng) {
-        map.value.flyTo([vehicle.lat, vehicle.lng], 17, { duration: 0.6 })
+        map.value.flyTo([vehicle.lat, vehicle.lng], followZoom.value, { duration: 0.6 })
       }
     }
   }
@@ -1066,8 +1104,16 @@ watch(
   () => uiStore.darkMode,
   (isDark) => {
     if (currentTile.value === 'light' || currentTile.value === 'dark') {
-      changeTile(isDark ? 'dark' : 'light')
+      uiStore.setMapTile(isDark ? 'dark' : 'light')
     }
+  }
+)
+
+// Pastki menyudagi "Ko'proq" dan qatlam tanlansa
+watch(
+  () => uiStore.mapTile,
+  (key) => {
+    if (key && key !== currentTile.value) changeTile(key)
   }
 )
 
@@ -1241,21 +1287,32 @@ onUnmounted(() => {
     <!-- Follow Mode Info Card -->
     <div
       v-if="isFollowing"
-      class="follow-card-in absolute top-3 md:top-5 left-1/2 -translate-x-1/2 z-[1001] max-w-[calc(100vw_-_8rem)] md:max-w-none"
+      class="follow-card-in absolute inset-x-3 top-3 md:top-5 z-[1001] flex justify-center"
     >
-        <div class="flex items-center gap-2 md:gap-3 bg-blue-500 text-white pl-3 md:pl-4 pr-1.5 md:pr-2 py-1.5 md:py-2 rounded-full shadow-lg">
-        <div class="flex items-center gap-1.5 md:gap-2 min-w-0">
-          <Navigation class="h-4 w-4 shrink-0 animate-pulse" />
-          <!-- Yorliq mobilda yashirin — ikonka o'zi tushuntiradi -->
-          <span class="hidden md:inline text-sm font-medium">{{ t('map.following') }}:</span>
-          <span class="text-xs md:text-sm font-bold truncate">{{ followedVehicleName }}</span>
+        <div class="flex w-fit max-w-[300px] items-center gap-1 bg-primary text-primary-foreground pl-3.5 md:pl-4 pr-1 py-1 md:py-2 rounded-full shadow-lg">
+        <div class="flex items-center min-w-0">
+          <div class="flex min-w-0 flex-col leading-tight">
+            <!-- Ikkinchi darajali yorliq — kichik va so'nik -->
+            <span class="hidden md:block text-center text-[9px] font-medium uppercase tracking-widest opacity-55">
+              {{ t('map.following') }}
+            </span>
+            <div class="flex min-w-0 items-center justify-center gap-1.5">
+              <span class="truncate text-[13px] md:text-sm font-semibold uppercase">{{ followedName }}</span>
+              <span
+                v-if="followedVehicle?.carNumber"
+                class="shrink-0 font-mono text-[11px] md:text-xs font-bold tracking-wide"
+              >
+                {{ followedVehicle.carNumber }}
+              </span>
+            </div>
+          </div>
         </div>
         <button
-          class="p-2 md:p-1.5 shrink-0 rounded-full bg-white/20 hover:bg-white/30 transition-colors pointer-events-auto"
+          class="p-1 md:p-1.5 shrink-0 rounded-full bg-black/10 hover:bg-black/20 transition-colors pointer-events-auto"
           :title="t('map.unfollow')"
           @click="vehiclesStore.unfollowVehicle()"
         >
-          <XCircle class="h-4 w-4" />
+          <X class="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -1330,57 +1387,17 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Map Controls -->
-    <!-- Mobilda pastki varaq peek balandligidan yuqorida turadi -->
+    <!-- Xarita boshqaruvi — faqat joylashuvni aniqlash.
+         Qatlam tanlash pastki menyudagi "Ko'proq" ga ko'chdi. -->
     <div class="absolute right-4 flex flex-col gap-2 z-[1000]" :style="controlsStyle">
-      <!-- Tile Selector -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <button
-            class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-            :title="t('map.layers')"
-          >
-            <Layers class="h-5 w-5" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="min-w-[140px]">
-          <DropdownMenuItem
-            v-for="(tile, key) in mapTiles"
-            :key="key"
-            class="cursor-pointer"
-            :class="{ 'bg-accent': currentTile === key }"
-            @click="changeTile(key as string)"
-          >
-            {{ tile.name }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <!-- Fit All -->
       <button
-        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-        :title="t('map.fitAll')"
-        @click="fitAllMarkers"
+        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-full shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+        :title="t('map.myLocation')"
+        @click="locateMe"
       >
-        <Locate class="h-5 w-5" />
-      </button>
-
-      <!-- Zoom In -->
-      <button
-        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-        :title="t('map.zoomIn')"
-        @click="map?.zoomIn()"
-      >
-        <Plus class="h-5 w-5" />
-      </button>
-
-      <!-- Zoom Out -->
-      <button
-        class="w-11 h-11 md:w-10 md:h-10 bg-background rounded-md shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-        :title="t('map.zoomOut')"
-        @click="map?.zoomOut()"
-      >
-        <Minus class="h-5 w-5" />
+        <Loader2 v-if="locating" class="h-5 w-5 animate-spin" />
+        <LocateFixed v-else-if="userMarker" class="h-5 w-5 text-primary" />
+        <Locate v-else class="h-5 w-5" />
       </button>
     </div>
   </div>
@@ -1439,12 +1456,73 @@ onUnmounted(() => {
   border: none;
 }
 
+.user-location {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-location {
+  position: relative;
+}
+
+.user-location-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffd21c;
+  border: 3px solid #111111;
+  box-shadow: 0 0 0 3px rgb(255 210 28 / 0.35);
+}
+
+/* Joylashuv nuqtasidan tarqaladigan to'lqin */
+.user-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 210, 28, 0.35);
+  border: 2px solid rgba(255, 210, 28, 0.85);
+  animation: user-ripple 1.8s ease-out infinite;
+}
+
+.user-ripple-delay {
+  animation-delay: 0.9s;
+}
+
+@keyframes user-ripple {
+  0% {
+    width: 18px;
+    height: 18px;
+    opacity: 1;
+  }
+  100% {
+    width: 56px;
+    height: 56px;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-ripple {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .car-speed-badge {
   position: absolute;
   top: -8px;
   left: 50%;
   transform: translateX(-50%);
-  background: #3b82f6;
+  background: #ffd21c;
+  color: #111111;
   color: white;
   font-size: 11px;
   font-weight: 600;
@@ -1473,8 +1551,8 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(59, 130, 246, 0.5);
-  border: 2px solid rgba(59, 130, 246, 0.8);
+  background: rgba(255, 210, 28, 0.5);
+  border: 2px solid rgba(255, 210, 28, 0.8);
   animation: ripple 1.5s ease-out infinite;
 }
 
@@ -1497,9 +1575,9 @@ onUnmounted(() => {
 
 /* Follow mode border - animated glow effect */
 .follow-mode-border {
-  border: 5px solid #3b82f6;
+  border: 5px solid #ffd21c;
   border-radius: 8px;
-  animation: follow-border-glow 2s ease-in-out infinite;
+  animation: follow-border-glow 1.6s ease-in-out infinite;
 }
 
 /* Mobilda ramka ingichkaroq va yorug'lik yumshoqroq — joy tejaydi, GPU'ni kam yuklaydi */
@@ -1512,12 +1590,15 @@ onUnmounted(() => {
 
 @keyframes follow-border-glow-sm {
   0%, 100% {
-    border-color: #2563eb;
-    box-shadow: 0 0 8px #3b82f6, inset 0 0 16px rgba(59, 130, 246, 0.12);
+    border-color: rgba(233, 185, 0, 0.45);
+    box-shadow: 0 0 4px rgba(255, 210, 28, 0.45), inset 0 0 10px rgba(255, 210, 28, 0.06);
   }
   50% {
-    border-color: #93c5fd;
-    box-shadow: 0 0 14px #60a5fa, inset 0 0 24px rgba(59, 130, 246, 0.2);
+    border-color: #ffd21c;
+    box-shadow:
+      0 0 16px #ffd21c,
+      0 0 34px rgba(255, 210, 28, 0.75),
+      inset 0 0 40px rgba(255, 210, 28, 0.28);
   }
 }
 
@@ -1530,26 +1611,29 @@ onUnmounted(() => {
 
 @keyframes follow-border-glow {
   0%, 100% {
-    border-color: #2563eb;
+    border-color: rgba(233, 185, 0, 0.5);
     box-shadow:
-      0 0 15px #3b82f6,
-      0 0 30px #3b82f6,
-      0 0 45px rgba(59, 130, 246, 0.6),
-      inset 0 0 40px rgba(59, 130, 246, 0.15);
+      0 0 6px rgba(255, 210, 28, 0.5),
+      inset 0 0 18px rgba(255, 210, 28, 0.07);
   }
   50% {
-    border-color: #93c5fd;
+    border-color: #ffd21c;
     box-shadow:
-      0 0 25px #60a5fa,
-      0 0 50px #3b82f6,
-      0 0 70px rgba(59, 130, 246, 0.8),
-      inset 0 0 60px rgba(59, 130, 246, 0.25);
+      0 0 24px #ffd21c,
+      0 0 52px rgba(255, 210, 28, 0.9),
+      0 0 90px rgba(255, 210, 28, 0.55),
+      inset 0 0 80px rgba(255, 210, 28, 0.32);
   }
 }
 
 /* Bir martalik kirish animatsiyasi — qayta render'da qotib qolmaydi */
 .follow-card-in {
   animation: follow-card-fade 0.3s ease-out;
+  pointer-events: none;
+}
+
+.follow-card-in > * {
+  pointer-events: auto;
 }
 
 @keyframes follow-card-fade {

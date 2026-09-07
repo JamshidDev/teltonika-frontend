@@ -2,11 +2,10 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVehiclesStore } from '@/stores/vehicles.store'
-import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import MapContainer from '@/components/map/MapContainer.vue'
-import VehicleSidebar from '@/components/sidebar/VehicleSidebar.vue'
 import VehicleBottomSheet from '@/components/sidebar/VehicleBottomSheet.vue'
+import VehiclePanel from '@/components/sidebar/VehiclePanel.vue'
 import { useBreakpoint } from '@/composables/useBreakpoint'
 import {
   Tooltip,
@@ -14,18 +13,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Car, Wifi, WifiOff, Gauge, User, LogOut } from 'lucide-vue-next'
+import { Car, Wifi, WifiOff, Gauge } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const vehiclesStore = useVehiclesStore()
-const authStore = useAuthStore()
 const uiStore = useUiStore()
 
 const { isDesktop } = useBreakpoint()
@@ -38,9 +29,6 @@ onMounted(() => {
 })
 const mapZoom = computed(() => uiStore.mapZoom)
 
-function handleLogout() {
-  authStore.logout()
-}
 </script>
 
 <template>
@@ -48,41 +36,21 @@ function handleLogout() {
     <!-- Map as background -->
     <MapContainer class="absolute inset-0" />
 
-    <!-- Desktop: suzuvchi yon panel -->
-    <div v-if="isDesktop" class="absolute left-5 top-5 z-10 h-[calc(100vh-120px)]">
-      <VehicleSidebar class="h-full rounded-xl shadow-xl overflow-hidden" />
+    <!-- Desktop: suzuvchi kartochka — pastki menyudan ochiladi -->
+    <div
+      v-if="isDesktop && uiStore.panelOpen"
+      class="absolute left-5 top-5 z-10 h-[calc(100vh-190px)] w-[420px]"
+    >
+      <div class="brand-card flex h-full flex-col overflow-hidden rounded-xl bg-card">
+        <VehiclePanel />
+      </div>
     </div>
 
-    <!-- Mobil: to'liq xarita ustida pastki varaq -->
-    <VehicleBottomSheet v-else />
+    <!-- Suzuvchi pastki menyu (ikkala rejimda) + mobil varaq -->
+    <VehicleBottomSheet />
 
     <!-- Top right controls - vertical -->
     <div class="absolute top-3 right-3 md:top-5 md:right-5 flex flex-col items-center gap-2 z-10">
-      <!-- Profile Button -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <button class="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
-            <User class="h-5 w-5" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-48">
-          <div class="px-2 py-1.5 text-sm font-medium">
-            {{ authStore.currentUser?.name }}
-          </div>
-          <div class="px-2 pb-1.5 text-xs text-muted-foreground">
-            {{ authStore.currentUser?.email }}
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            class="gap-2 cursor-pointer text-destructive focus:text-destructive"
-            @click="handleLogout"
-          >
-            <LogOut class="h-4 w-4" />
-            {{ t('auth.logout') }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
       <!-- Stats — mobilda pastki varaqda ko'rsatiladi -->
       <TooltipProvider v-if="isDesktop">
         <Tooltip>

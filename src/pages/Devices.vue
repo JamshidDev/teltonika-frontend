@@ -165,14 +165,14 @@ onMounted(() => {
 
       <!-- Table content -->
       <div class="flex-1 overflow-auto table-scroll">
-        <table class="w-full min-w-[620px] md:min-w-0 table-fixed">
+        <table class="w-full min-w-[600px] md:min-w-0 table-fixed">
           <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
-              <th class="text-left px-4 py-3 font-medium text-sm w-[80px] min-w-[80px]">ID</th>
-              <th class="text-left px-4 py-3 font-medium text-sm">{{ t('device.imei') }}</th>
-              <th class="text-left px-4 py-3 font-medium text-sm w-[200px] min-w-[200px]">{{ t('device.model') }}</th>
-              <th class="text-left px-4 py-3 font-medium text-sm w-[120px] min-w-[120px]">{{ t('device.createdAt') }}</th>
-              <th class="text-center px-4 py-3 font-medium text-sm w-[100px] min-w-[100px]">{{ t('common.actions') }}</th>
+              <th class="text-left px-4 py-3 font-medium text-sm w-[56px] min-w-[56px] md:w-[80px] md:min-w-[80px]">ID</th>
+              <th class="text-left px-4 py-3 font-medium text-sm w-[195px] min-w-[195px] md:w-auto md:min-w-0">{{ t('device.imei') }}</th>
+              <th class="text-left px-4 py-3 font-medium text-sm w-[110px] min-w-[110px] md:w-[200px] md:min-w-[200px]">{{ t('device.model') }}</th>
+              <th class="text-left px-4 py-3 font-medium text-sm w-[105px] min-w-[105px] md:w-[120px] md:min-w-[120px]">{{ t('device.createdAt') }}</th>
+              <th class="text-center px-4 py-3 font-medium text-sm w-[80px] min-w-[80px] md:w-[100px] md:min-w-[100px]">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">

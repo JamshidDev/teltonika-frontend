@@ -15,22 +15,17 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        redirect: '/dashboard',
+        redirect: '/map',
       },
       {
-        path: 'dashboard',
-        name: 'dashboard',
+        path: 'map',
+        name: 'map',
         component: () => import('@/pages/Dashboard.vue'),
       },
       {
         path: 'history',
         name: 'history',
         component: () => import('@/pages/History.vue'),
-      },
-      {
-        path: 'events',
-        name: 'events',
-        component: () => import('@/pages/Events.vue'),
       },
       {
         path: 'reports',
@@ -58,11 +53,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/Devices.vue'),
       },
       {
-        path: 'stop-events',
-        name: 'stop-events',
-        component: () => import('@/pages/StopEvents.vue'),
-      },
-      {
         path: 'engine-events',
         name: 'engine-events',
         component: () => import('@/pages/EngineEvents.vue'),
@@ -71,7 +61,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/dashboard',
+    redirect: '/map',
   },
 ]
 
@@ -91,7 +81,7 @@ router.beforeEach((to, _from, next) => {
     next({ name: 'login' })
   } else if (to.name === 'login' && token) {
     // Redirect to dashboard if already logged in
-    next({ name: 'dashboard' })
+    next({ name: 'map' })
   } else {
     next()
   }
