@@ -260,7 +260,7 @@ onMounted(() => {
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30">
+      <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 md:px-4 py-3 border-t border-border bg-muted/30">
         <div class="flex items-center gap-4 text-sm text-muted-foreground">
           <span>{{ t('common.total') }}: <strong class="text-foreground">{{ meta?.total || 0 }}</strong></span>
           <span class="text-border">|</span>
@@ -268,7 +268,7 @@ onMounted(() => {
             <span>{{ t('common.pageSize') }}:</span>
             <select
               :value="pageSize"
-              class="h-9 w-20 rounded-md border border-input bg-background px-3 text-sm cursor-pointer"
+              class="h-10 md:h-9 w-20 rounded-lg border border-input bg-background px-3 text-sm cursor-pointer"
               @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
             >
               <option value="10">10</option>
@@ -279,7 +279,7 @@ onMounted(() => {
         </div>
         <div class="flex items-center gap-1.5">
           <button
-            class="h-9 w-9 rounded-md border border-input bg-background flex items-center justify-center hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-10 w-10 md:h-9 md:w-9 rounded-lg border border-input bg-background flex items-center justify-center hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!hasPrevPage"
             @click="goToPage(currentPage - 1)"
           >
@@ -290,7 +290,7 @@ onMounted(() => {
               v-for="page in visiblePages"
               :key="page"
               :class="[
-                'h-9 min-w-[2.25rem] px-3 rounded-md text-sm font-medium transition-colors',
+                'h-10 md:h-9 min-w-[2.5rem] md:min-w-[2.25rem] px-3 rounded-lg text-sm font-medium transition-colors',
                 page === currentPage
                   ? 'bg-primary text-primary-foreground'
                   : 'border border-input bg-background hover:bg-accent'
@@ -301,7 +301,7 @@ onMounted(() => {
             </button>
           </div>
           <button
-            class="h-9 w-9 rounded-md border border-input bg-background flex items-center justify-center hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-10 w-10 md:h-9 md:w-9 rounded-lg border border-input bg-background flex items-center justify-center hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!hasNextPage"
             @click="goToPage(currentPage + 1)"
           >
