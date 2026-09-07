@@ -67,29 +67,32 @@ const animationLine = shallowRef<any>(null)
 const animationMarker = shallowRef<any>(null)
 const animationFrameId = ref<number | null>(null)
 
-const currentTile = ref('osm')
+const currentTile = ref('light')
 
 // Map tiles configuration
+// Tile serveri — o'z infratuzilmamiz (TileServer GL). API kalit talab qilmaydi.
+const TILE_BASE = (import.meta.env.VITE_TILE_BASE_URL || 'https://osm.megago.uz').replace(/\/$/, '')
+
 const mapTiles = {
+  light: {
+    name: 'MegaMaps Light',
+    url: `${TILE_BASE}/ts/styles/client-light/{z}/{x}/{y}{r}.png`,
+    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
+  },
+  dark: {
+    name: 'MegaMaps Dark',
+    url: `${TILE_BASE}/ts/styles/client-dark/{z}/{x}/{y}{r}.png`,
+    attribution: '&copy; OpenMapTiles &copy; OpenStreetMap contributors',
+  },
+  satellite: {
+    name: 'Satellite',
+    url: `${TILE_BASE}/ts/data/satellite/{z}/{x}/{y}.jpg`,
+    attribution: '&copy; Google',
+  },
   osm: {
     name: 'OpenStreetMap',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
-  },
-  carto_light: {
-    name: 'CartoDB Light',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OSM &copy; CARTO',
-  },
-  carto_dark: {
-    name: 'CartoDB Dark',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OSM &copy; CARTO',
-  },
-  satellite: {
-    name: 'Satellite',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri',
   },
 }
 
@@ -154,7 +157,7 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
 
 // Get appropriate tile based on dark mode
 function getDefaultTile() {
-  return uiStore.darkMode ? 'carto_dark' : 'osm'
+  return uiStore.darkMode ? 'dark' : 'light'
 }
 
 // Tile layer yaratish — opsiyalar bitta joyda turishi uchun.
@@ -163,7 +166,7 @@ function createTileLayer(tileKey: string) {
 
   return L.tileLayer(tile.url, {
     attribution: tile.attribution,
-    maxZoom: 19,
+    maxZoom: 20,
     // Zoom animatsiyasi tugagach yuklanadi — aks holda tile'lar yarim yo'lda uziladi.
     updateWhenZooming: false,
     // Ko'rinish atrofida qo'shimcha tile saqlanadi, zoom/pan'da bo'sh joy qolmaydi.
@@ -1062,8 +1065,8 @@ watch(
 watch(
   () => uiStore.darkMode,
   (isDark) => {
-    if (currentTile.value === 'osm' || currentTile.value === 'carto_dark' || currentTile.value === 'carto_light') {
-      changeTile(isDark ? 'carto_dark' : 'osm')
+    if (currentTile.value === 'light' || currentTile.value === 'dark') {
+      changeTile(isDark ? 'dark' : 'light')
     }
   }
 )
