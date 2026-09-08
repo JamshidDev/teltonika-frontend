@@ -129,6 +129,23 @@ export interface RoutePoint {
   recordedAt: string
 }
 
+export interface RawPositionPoint {
+  lat: number
+  lng: number
+  speed: number
+  angle: number
+  ignition: boolean
+  recordedAt: string
+}
+
+export interface RawPositionsResponse {
+  carId: number
+  from: string
+  to: string
+  totalPoints: number
+  points: RawPositionPoint[]
+}
+
 // API Response types
 export interface PaginationMeta {
   total: number
@@ -233,4 +250,12 @@ export interface TimelineRoutePoint {
   speed: number
   angle: number
   recordedAt: string
+}
+
+export interface TrafficStats {
+  car: { id: number; name: string; carNumber: string | null } | null
+  device: { id: number; imei: string; model: string } | null
+  driver: { id: number; fullName: string; phone: string } | null
+  totalBytes: number
+  totalFormatted: string
 }

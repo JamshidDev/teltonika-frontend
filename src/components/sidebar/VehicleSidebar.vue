@@ -65,10 +65,14 @@ watch(activeTab, (newTab, oldTab) => {
 
   // Clear scheduled tab elements when leaving
   if (oldTab === 'scheduled') {
-    // Clear any scheduled route if exists
     vehiclesStore.clearRoute()
     vehiclesStore.clearSpotMarker()
     selectedTimelineIndex.value = null
+  }
+
+  // Clear history tab elements when leaving
+  if (oldTab === 'history') {
+    vehiclesStore.clearRawPositions()
   }
 
   // Scheduled yoki History tabga o'tganda car markerlarni yashir
@@ -366,6 +370,58 @@ function scrollDates(direction: 'left' | 'right') {
   }
 }
 
+// History tab state
+const historySelectorOpen = ref(false)
+const selectedHistoryCarId = ref<number | null>(null)
+
+const selectedHistoryCar = computed(() => {
+  if (!selectedHistoryCarId.value) return null
+  return carsStore.cars.find(c => c.id === selectedHistoryCarId.value) || null
+})
+
+function selectHistoryCar(carId: number) {
+  selectedHistoryCarId.value = carId
+  historySelectorOpen.value = false
+}
+
+// Set first car as default for history tab
+watch(
+  () => carsStore.cars,
+  (cars) => {
+    if (cars.length > 0 && !selectedHistoryCarId.value) {
+      selectedHistoryCarId.value = cars[0]!.id
+    }
+  },
+  { immediate: true }
+)
+
+// Auto-fetch raw positions when history car changes
+function getYesterdayRange(): { from: string; to: string } {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  return getUtcDateRange(yesterday)
+}
+
+watch(
+  selectedHistoryCarId,
+  (carId) => {
+    if (carId && activeTab.value === 'history') {
+      const { from, to } = getYesterdayRange()
+      vehiclesStore.fetchRawPositions(carId, from, to)
+    } else {
+      vehiclesStore.clearRawPositions()
+    }
+  }
+)
+
+// Fetch when switching to history tab
+watch(activeTab, (tab) => {
+  if (tab === 'history' && selectedHistoryCarId.value) {
+    const { from, to } = getYesterdayRange()
+    vehiclesStore.fetchRawPositions(selectedHistoryCarId.value, from, to)
+  }
+})
+
 const vehicles = computed(() => vehiclesStore.filteredVehicles)
 
 const localSearchQuery = ref('')
@@ -423,11 +479,106 @@ onMounted(() => {
 
     <!-- Body -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Coming Soon for history tab -->
-      <div v-if="activeTab === 'history'" class="flex-1 flex items-center justify-center p-4">
-        <div class="text-center text-muted-foreground">
-          <div class="text-4xl mb-3">🚧</div>
-          <p class="text-sm">{{ t('common.comingSoon') }}</p>
+      <!-- History tab content -->
+      <div v-if="activeTab === 'history'" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <!-- Car Selector Row -->
+        <div class="border-b border-border flex-shrink-0">
+          <div class="flex items-center justify-between p-2">
+            <div class="flex-1 min-w-0">
+              <template v-if="selectedHistoryCar">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium truncate">{{ selectedHistoryCar.name }}</span>
+                  <span v-if="selectedHistoryCar.carNumber" class="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono text-muted-foreground">{{ selectedHistoryCar.carNumber }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <p class="text-xs text-muted-foreground">{{ t('sidebar.selectCar') }}</p>
+              </template>
+            </div>
+            <Popover v-model:open="historySelectorOpen">
+              <PopoverTrigger as-child>
+                <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md bg-muted hover:bg-accent transition-colors">
+                  <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent class="w-72 p-0" align="end">
+                <div class="max-h-64 overflow-y-auto">
+                  <div
+                    v-for="car in carsStore.cars"
+                    :key="car.id"
+                    :class="[
+                      'flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors',
+                      selectedHistoryCarId === car.id ? 'bg-primary/10 text-primary' : 'hover:bg-accent',
+                    ]"
+                    @click="selectHistoryCar(car.id)"
+                  >
+                    <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">{{ car.name }}</p>
+                      <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+                    </div>
+                  </div>
+                  <div v-if="carsStore.cars.length === 0" class="p-4 text-center text-sm text-muted-foreground">
+                    {{ t('sidebar.noVehicles') }}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="border-b border-border flex-shrink-0 px-3 py-2 flex items-center justify-between">
+          <span class="text-xs text-muted-foreground">{{ t('common.yesterday') }}</span>
+          <div class="flex items-center gap-2">
+            <Loader2 v-if="vehiclesStore.rawPositionsLoading" class="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            <span class="text-xs font-medium">{{ vehiclesStore.rawPositions.length }} {{ t('history.points') }}</span>
+          </div>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="border-b border-border flex-shrink-0 px-3 py-2">
+          <p class="text-[10px] font-medium text-muted-foreground mb-1.5">{{ t('history.speedLegend') }}</p>
+          <div class="grid grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></span>
+              <span>Ign OFF</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0"></span>
+              <span>Idle</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
+              <span>&lt;30 km/h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
+              <span>30-60 km/h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+              <span>60-100 km/h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0"></span>
+              <span>100+ km/h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty/Loading state -->
+        <div v-if="vehiclesStore.rawPositionsLoading" class="flex-1 flex items-center justify-center">
+          <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+        <div v-else-if="vehiclesStore.rawPositions.length === 0" class="flex-1 flex items-center justify-center p-4">
+          <div class="text-center text-muted-foreground">
+            <History class="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p class="text-sm">{{ t('history.noData') }}</p>
+          </div>
+        </div>
+        <div v-else class="flex-1 min-h-0 overflow-y-auto p-3">
+          <p class="text-xs text-muted-foreground">{{ t('history.analysisReady') }}</p>
         </div>
       </div>
 

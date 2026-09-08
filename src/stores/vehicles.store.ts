@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { carsApi } from '@/api/cars'
 import { toast } from 'vue-sonner'
-import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent } from '@/types'
+import type { VehicleWithPosition, PaginationMeta, RoutePoint, CarMotionEvent, RawPositionPoint } from '@/types'
 
 export const useVehiclesStore = defineStore('vehicles', () => {
   // State
@@ -31,6 +31,10 @@ export const useVehiclesStore = defineStore('vehicles', () => {
 
   // Hide all car markers on map (e.g. when on Scheduled/History tab)
   const markersHidden = ref(false)
+
+  // Raw positions state (for history analysis)
+  const rawPositions = ref<RawPositionPoint[]>([])
+  const rawPositionsLoading = ref(false)
 
   // Getters
   const selectedVehicle = computed(() => {
@@ -248,6 +252,24 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     }
   }
 
+  // Fetch raw positions for analysis
+  async function fetchRawPositions(carId: number, from: string, to: string): Promise<void> {
+    rawPositionsLoading.value = true
+    try {
+      const response = await carsApi.getRawPositions({ carId, from, to })
+      rawPositions.value = response.points
+    } catch (err) {
+      console.error('Failed to fetch raw positions:', err)
+      rawPositions.value = []
+    } finally {
+      rawPositionsLoading.value = false
+    }
+  }
+
+  function clearRawPositions(): void {
+    rawPositions.value = []
+  }
+
   // Start route animation
   function startRouteAnimation(): void {
     if (routePoints.value.length < 2) return
@@ -279,6 +301,8 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     spotMarker,
     routeAnimating,
     markersHidden,
+    rawPositions,
+    rawPositionsLoading,
     // Getters
     selectedVehicle,
     followedVehicle,
@@ -307,5 +331,7 @@ export const useVehiclesStore = defineStore('vehicles', () => {
     clearSpotMarker,
     startRouteAnimation,
     stopRouteAnimation,
+    fetchRawPositions,
+    clearRawPositions,
   }
 })

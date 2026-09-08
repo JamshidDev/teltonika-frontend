@@ -121,7 +121,10 @@
     "yesterday": "Kecha",
     "customDate": "Boshqa sana",
     "start": "Boshlash",
-    "end": "Tugash"
+    "end": "Tugash",
+    "points": "nuqta",
+    "speedLegend": "Tezlik bo'yicha ranglar",
+    "analysisReady": "Xaritada nuqtalar ko'rsatilmoqda. Har bir nuqta ustiga olib boring."
   },
   "events": {
     "title": "Hodisalar",
@@ -259,5 +262,14 @@
     "parking_candidate": "Dvigatel o'chdi",
     "parking": "Parking",
     "minutes": "daq"
+  },
+  "traffic": {
+    "title": "Trafik hisoblash",
+    "calculate": "Hisoblash",
+    "totalTraffic": "Umumiy trafik",
+    "selectCar": "Mashina tanlang",
+    "from": "Boshlanish",
+    "to": "Tugash",
+    "noResult": "Natija topilmadi"
   }
 }

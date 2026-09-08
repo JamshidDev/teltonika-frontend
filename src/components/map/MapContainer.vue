@@ -822,6 +822,87 @@ function clearRouteLine() {
   }
 }
 
+// Raw positions analysis visualization
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawPositionMarkers = ref<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawPositionLine = ref<any>(null)
+
+function getRawPositionColor(pos: { ignition: boolean; speed: number }): string {
+  if (!pos.ignition) return '#ef4444'    // Red - ignition off
+  if (pos.speed === 0) return '#f97316'   // Orange - idle
+  if (pos.speed < 30) return '#eab308'    // Yellow - slow
+  if (pos.speed < 60) return '#22c55e'    // Green - moderate
+  if (pos.speed < 100) return '#3b82f6'   // Blue - fast
+  return '#8b5cf6'                         // Purple - very fast
+}
+
+function drawRawPositions() {
+  if (!map.value) return
+  clearRawPositions()
+
+  const positions = vehiclesStore.rawPositions
+  if (positions.length === 0) return
+
+  const latLngs: L.LatLngExpression[] = positions.map(p => [p.lat, p.lng])
+
+  // Draw semi-transparent dashed polyline first
+  if (latLngs.length >= 2) {
+    rawPositionLine.value = L.polyline(latLngs, {
+      color: '#6b7280',
+      weight: 2,
+      opacity: 0.4,
+      dashArray: '5, 8',
+    }).addTo(map.value)
+  }
+
+  // Draw CircleMarkers
+  positions.forEach(p => {
+    const marker = L.circleMarker([p.lat, p.lng], {
+      radius: 5,
+      fillColor: getRawPositionColor(p),
+      color: '#fff',
+      weight: 1,
+      fillOpacity: 0.9,
+    }).addTo(map.value!)
+
+    const time = new Date(p.recordedAt).toLocaleTimeString()
+    marker.bindTooltip(
+      `<b>${time}</b><br>Speed: ${p.speed} km/h<br>Ignition: ${p.ignition ? 'ON' : 'OFF'}`,
+      { direction: 'top', offset: [0, -8] }
+    )
+
+    rawPositionMarkers.value.push(marker)
+  })
+
+  // Fit bounds (offset left for sidebar)
+  if (latLngs.length > 0) {
+    const bounds = L.latLngBounds(latLngs)
+    map.value.fitBounds(bounds, { paddingTopLeft: [480, 50], paddingBottomRight: [50, 50] })
+  }
+}
+
+function clearRawPositions() {
+  rawPositionMarkers.value.forEach(m => {
+    try { m.off(); m.remove() } catch (_e) { /* ignore */ }
+  })
+  rawPositionMarkers.value = []
+
+  if (rawPositionLine.value) {
+    try { rawPositionLine.value.off(); rawPositionLine.value.remove() } catch (_e) { /* ignore */ }
+    rawPositionLine.value = null
+  }
+}
+
+// Watch for raw positions changes
+watch(
+  () => vehiclesStore.rawPositions,
+  () => {
+    drawRawPositions()
+  },
+  { deep: true }
+)
+
 // Watch for route points changes
 watch(
   () => vehiclesStore.routePoints,
@@ -1001,6 +1082,9 @@ onUnmounted(() => {
     }
     spotCircleRef.value = null
   }
+
+  // Clean up raw position markers
+  clearRawPositions()
 
   // Clean up markers layer
   if (markersLayer.value) {

@@ -1,5 +1,5 @@
 import api from './axios'
-import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent, RouteWithEventsResponse } from '@/types'
+import type { Car, CreateCarDto, UpdateCarDto, PaginatedResponse, VehicleWithPosition, HistoryPosition, RoutePoint, StopEvent, EngineEvent, RouteWithEventsResponse, RawPositionsResponse, TrafficStats } from '@/types'
 
 export interface CarsQueryParams {
   page?: number
@@ -109,6 +109,18 @@ export const carsApi = {
   // Get route with events (timeline)
   async getRouteWithEvents(params: RouteWithEventsParams): Promise<RouteWithEventsResponse> {
     const response = await api.get<RouteWithEventsResponse>('/history/route-with-events', { params })
+    return response.data
+  },
+
+  // Get raw positions for analysis
+  async getRawPositions(params: HistoryRouteParams): Promise<RawPositionsResponse> {
+    const response = await api.get<RawPositionsResponse>('/history/raw-positions', { params })
+    return response.data
+  },
+
+  // Get traffic stats for a car
+  async getTrafficStats(params: { carId: number; from: string; to: string }): Promise<TrafficStats> {
+    const response = await api.get<TrafficStats>('/history/traffic', { params })
     return response.data
   },
 }

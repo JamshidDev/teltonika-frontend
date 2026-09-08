@@ -121,7 +121,10 @@
     "yesterday": "Yesterday",
     "customDate": "Custom Date",
     "start": "Start",
-    "end": "End"
+    "end": "End",
+    "points": "points",
+    "speedLegend": "Speed color legend",
+    "analysisReady": "Points are displayed on the map. Hover over each point for details."
   },
   "events": {
     "title": "Events",
@@ -259,5 +262,14 @@
     "parking_candidate": "Engine off",
     "parking": "Parking",
     "minutes": "min"
+  },
+  "traffic": {
+    "title": "Traffic calculation",
+    "calculate": "Calculate",
+    "totalTraffic": "Total traffic",
+    "selectCar": "Select car",
+    "from": "From",
+    "to": "To",
+    "noResult": "No result found"
   }
 }
