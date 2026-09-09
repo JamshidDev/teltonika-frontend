@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import DatePicker from '@/components/ui/date-picker/DatePicker.vue'
 import {
   Car,
   Plus,
@@ -32,9 +33,11 @@ import {
   Cpu,
   User,
   MoreVertical,
+  BarChart3,
 } from 'lucide-vue-next'
-import type { Car as CarType, CreateCarDto, UpdateCarDto } from '@/types'
+import type { Car as CarType, CreateCarDto, UpdateCarDto, TrafficStats } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils'
+import { carsApi } from '@/api/cars'
 
 const { t } = useI18n()
 const carsStore = useCarsStore()
@@ -48,6 +51,51 @@ const isEditing = ref(false)
 const selectedCar = ref<CarType | null>(null)
 const isSubmitting = ref(false)
 const pageSize = ref(Number(localStorage.getItem('vehicles_pageSize')) || 10)
+
+// Traffic modal state
+const isTrafficDialogOpen = ref(false)
+const trafficCarId = ref<number | null>(null)
+const trafficFrom = ref('')
+const trafficTo = ref('')
+const trafficResult = ref<TrafficStats | null>(null)
+const trafficLoading = ref(false)
+
+const carOptions = computed<SelectOption[]>(() =>
+  carsStore.cars.map(car => ({
+    value: car.id,
+    label: car.name,
+    description: car.carNumber || undefined,
+    icon: Car,
+  }))
+)
+
+async function openTrafficDialog() {
+  trafficCarId.value = null
+  trafficFrom.value = ''
+  trafficTo.value = ''
+  trafficResult.value = null
+  trafficLoading.value = false
+  isTrafficDialogOpen.value = true
+}
+
+async function calculateTraffic() {
+  if (!trafficCarId.value || !trafficFrom.value || !trafficTo.value) return
+  trafficLoading.value = true
+  trafficResult.value = null
+  try {
+    const from = `${trafficFrom.value}T00:00:00Z`
+    const to = `${trafficTo.value}T23:59:59Z`
+    trafficResult.value = await carsApi.getTrafficStats({
+      carId: trafficCarId.value,
+      from,
+      to,
+    })
+  } catch (error) {
+    console.error('Failed to get traffic stats:', error)
+  } finally {
+    trafficLoading.value = false
+  }
+}
 
 const formData = ref({
   name: '',
@@ -207,6 +255,10 @@ onMounted(() => {
           @update:model-value="handleSearch"
         />
       </div>
+      <Button variant="outline" class="h-10 md:h-9 gap-2" @click="openTrafficDialog">
+        <BarChart3 class="h-4 w-4" />
+        {{ t('traffic.title') }}
+      </Button>
       <Button class="h-10 md:h-9 gap-2" @click="openAddDialog">
         <Plus class="h-4 w-4" />
         {{ t('vehicle.addVehicle') }}
@@ -452,6 +504,68 @@ onMounted(() => {
           <Button variant="outline" @click="isViewDialogOpen = false">
             {{ t('common.close') }}
           </Button>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Traffic Dialog -->
+    <Dialog
+      v-model:open="isTrafficDialogOpen"
+      :title="t('traffic.title')"
+    >
+      <div class="space-y-4">
+        <div class="space-y-2">
+          <Label>{{ t('traffic.selectCar') }}</Label>
+          <SearchableSelect
+            v-model="trafficCarId"
+            :options="carOptions"
+            :placeholder="t('traffic.selectCar')"
+            :search-placeholder="t('sidebar.search')"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-2">
+            <Label>{{ t('traffic.from') }}</Label>
+            <DatePicker v-model="trafficFrom" :placeholder="t('traffic.from')" />
+          </div>
+          <div class="space-y-2">
+            <Label>{{ t('traffic.to') }}</Label>
+            <DatePicker v-model="trafficTo" :placeholder="t('traffic.to')" />
+          </div>
+        </div>
+        <Button
+          class="w-full gap-2"
+          :disabled="!trafficCarId || !trafficFrom || !trafficTo || trafficLoading"
+          @click="calculateTraffic"
+        >
+          <Loader2 v-if="trafficLoading" class="h-4 w-4 animate-spin" />
+          <BarChart3 v-else class="h-4 w-4" />
+          {{ t('traffic.calculate') }}
+        </Button>
+
+        <!-- Result -->
+        <div v-if="trafficResult" class="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+          <div class="text-center">
+            <p class="text-sm text-muted-foreground">{{ t('traffic.totalTraffic') }}</p>
+            <p class="text-2xl font-bold text-primary">{{ trafficResult.totalFormatted }}</p>
+          </div>
+          <div v-if="trafficResult.car" class="flex items-center gap-2 text-sm">
+            <Car class="h-4 w-4 text-muted-foreground" />
+            <span>{{ trafficResult.car.name }}</span>
+            <span v-if="trafficResult.car.carNumber" class="text-muted-foreground">{{ trafficResult.car.carNumber }}</span>
+          </div>
+          <div v-if="trafficResult.device" class="flex items-center gap-2 text-sm">
+            <Cpu class="h-4 w-4 text-muted-foreground" />
+            <span class="font-mono text-xs">{{ trafficResult.device.imei }}</span>
+            <span class="text-muted-foreground">{{ trafficResult.device.model }}</span>
+          </div>
+          <div v-if="trafficResult.driver" class="flex items-center gap-2 text-sm">
+            <User class="h-4 w-4 text-muted-foreground" />
+            <span>{{ trafficResult.driver.fullName }}</span>
+          </div>
+        </div>
+
+        <div v-if="!trafficLoading && trafficResult === null && trafficCarId && trafficFrom && trafficTo" class="text-center text-sm text-muted-foreground py-2">
         </div>
       </div>
     </Dialog>

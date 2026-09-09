@@ -1,9 +1,25 @@
 // User and Auth types
+export interface UserRole {
+  id: number
+  name: string
+  permissions: string[]
+}
+
 export interface User {
   id: number
   name: string
   email: string
-  role?: string
+  role: UserRole
+  isSuperAdmin: boolean
+}
+
+// Permission katalogi — backend /api/role/permissions dan keladi.
+export type PermissionAction = 'read' | 'edit' | 'delete'
+
+export interface PermissionGroup {
+  resource: string
+  label: string
+  actions: PermissionAction[]
 }
 
 export interface LoginCredentials {
@@ -260,4 +276,12 @@ export interface TimelineRoutePoint {
   speed: number
   angle: number
   recordedAt: string
+}
+
+export interface TrafficStats {
+  car: { id: number; name: string; carNumber: string | null } | null
+  device: { id: number; imei: string; model: string } | null
+  driver: { id: number; fullName: string; phone: string } | null
+  totalBytes: number
+  totalFormatted: string
 }

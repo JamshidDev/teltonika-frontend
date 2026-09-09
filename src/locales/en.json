@@ -14,12 +14,12 @@
     "welcome": "Welcome",
     "welcomeBack": "Welcome back",
     "loginSubtitle": "Log in to GPS Tracking",
-    "testimonial1": "Real-time vehicle tracking has transformed our fleet management. We reduced fuel costs by 23% in the first month.",
-    "testimonial1Author": "Fleet Manager",
-    "testimonial2": "The route history and stop detection features help us optimize delivery schedules and improve customer satisfaction.",
-    "testimonial2Author": "Logistics Director",
-    "testimonial3": "Simple, intuitive interface. Our drivers adapted quickly, and the live monitoring gives us complete visibility.",
-    "testimonial3Author": "Operations Lead",
+    "showcaseTitle": "Your whole fleet on one map",
+    "showcaseDistance": "Distance driven",
+    "showcaseIdle": "Idle time",
+    "showcaseFuel": "Fuel used",
+    "showcaseAvgSpeed": "Average speed",
+    "showcaseMinutes": "min",
     "featureLiveTracking": "Live Tracking",
     "featureLiveTrackingDesc": "Real-time GPS monitoring for your entire fleet",
     "featureRouteHistory": "Route History",
@@ -39,7 +39,9 @@
     "drivers": "Drivers",
     "devices": "Devices",
     "stopEvents": "Stops",
-    "engineEvents": "Engine"
+    "engineEvents": "Engine",
+    "users": "Users",
+    "roles": "Roles"
   },
   "sidebar": {
     "vehicles": "Vehicles",
@@ -274,5 +276,56 @@
     "route": "Route",
     "history": "History",
     "more": "More"
+  },
+  "traffic": {
+    "title": "Traffic calculation",
+    "calculate": "Calculate",
+    "totalTraffic": "Total traffic",
+    "selectCar": "Select car",
+    "from": "From",
+    "to": "To",
+    "noResult": "No result found"
+  },
+  "access": {
+    "title": "No access",
+    "description": "Your role ({role}) has no accessible pages. Contact an administrator."
+  },
+  "user": {
+    "title": "Users",
+    "add": "Add user",
+    "edit": "Edit",
+    "name": "Name",
+    "namePlaceholder": "Full name",
+    "email": "Email",
+    "password": "Password",
+    "passwordOptional": "Password (leave blank to keep)",
+    "role": "Role",
+    "createdAt": "Created",
+    "noUsers": "No users found",
+    "deleteTitle": "Delete user",
+    "deleteConfirm": "Delete this user?",
+    "createSuccess": "User created",
+    "updateSuccess": "User updated",
+    "deleteSuccess": "User deleted"
+  },
+  "role": {
+    "title": "Roles",
+    "name": "Role name",
+    "permissions": "Permissions",
+    "userCount": "Users",
+    "allPermissions": "All permissions",
+    "noRoles": "No roles found",
+    "selectedCount": "{n} permissions attached",
+    "updateSuccess": "Permissions updated",
+    "action": {
+      "read": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "subtitle": "Roles are system-defined — only permissions are configurable",
+    "editPermissions": "Permissions",
+    "locked": "Locked",
+    "attachAll": "Attach all",
+    "detachAll": "Detach all"
   }
 }
