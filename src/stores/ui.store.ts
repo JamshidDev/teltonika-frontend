@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'reports' | 'settings' | 'engine-events'
+export type TabType = 'dashboard' | 'vehicles' | 'drivers' | 'devices' | 'history' | 'reports' | 'settings' | 'engine-events' | 'users' | 'roles'
 export type Language = 'uz' | 'ru' | 'en'
 
 export const useUiStore = defineStore('ui', () => {
@@ -12,10 +12,8 @@ export const useUiStore = defineStore('ui', () => {
   const language = ref<Language>(
     (localStorage.getItem('language') as Language) || 'uz'
   )
-  const darkMode = ref(
-    localStorage.getItem('darkMode') === 'true' ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches
-  )
+  // Sukut bo'yicha dark tema — foydalanuvchi tanlovi saqlangan bo'lsa, o'sha ustun.
+  const darkMode = ref(localStorage.getItem('darkMode') !== 'false')
   // Sheet'dan xaritaga "barchasini ko'rsatish" signali — hisoblagich oshsa xarita reaksiya qiladi.
   const fitAllRequest = ref(0)
   // Xaritaga bosilganda pastki varaqni yig'ish signali.

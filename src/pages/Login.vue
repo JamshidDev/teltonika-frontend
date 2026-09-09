@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
-import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import LanguageSwitcher from '@/components/navigation/LanguageSwitcher.vue'
-import { MapPin, User, Lock, Eye, EyeOff, Navigation, Truck, MapPinned, Route } from 'lucide-vue-next'
+import MapShowcase from '@/components/auth/MapShowcase.vue'
+import { MapPin, User, Lock, Eye, EyeOff, Sun, Moon } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 // Initialize UI store to ensure dark mode class is applied on document
-useUiStore()
+const uiStore = useUiStore()
 
 const email = ref('')
 const password = ref('')
@@ -30,39 +30,29 @@ async function handleSubmit() {
   })
 }
 
-// Testimonial carousel — horizontal slide
-const activeTestimonial = ref(0)
-const testimonialKeys = [
-  { text: 'auth.testimonial1', author: 'auth.testimonial1Author' },
-  { text: 'auth.testimonial2', author: 'auth.testimonial2Author' },
-  { text: 'auth.testimonial3', author: 'auth.testimonial3Author' },
-]
-
-let testimonialInterval: ReturnType<typeof setInterval> | null = null
-
-onMounted(() => {
-  testimonialInterval = setInterval(() => {
-    activeTestimonial.value = (activeTestimonial.value + 1) % testimonialKeys.length
-  }, 5000)
-})
-
-onBeforeUnmount(() => {
-  if (testimonialInterval) clearInterval(testimonialInterval)
-})
 </script>
 
 <template>
   <div class="h-[100dvh] overflow-y-auto lg:overflow-hidden flex bg-background">
     <!-- Left Column — Login Form -->
-    <div class="w-full lg:w-[45%] flex flex-col relative bg-background">
+    <div class="w-full lg:w-[36%] xl:w-[32%] flex flex-col relative bg-background">
       <!-- Language switcher -->
-      <div class="absolute top-5 right-5 z-20">
+      <div class="absolute top-5 right-5 z-20 flex items-center gap-1">
+        <button
+          type="button"
+          class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          :aria-label="uiStore.darkMode ? 'Light' : 'Dark'"
+          @click="uiStore.toggleDarkMode()"
+        >
+          <Sun v-if="uiStore.darkMode" class="h-[18px] w-[18px]" />
+          <Moon v-else class="h-[18px] w-[18px]" />
+        </button>
         <LanguageSwitcher />
       </div>
 
       <!-- Form centered -->
-      <div class="flex-1 flex items-center justify-center px-8 sm:px-12 lg:px-16">
-        <div class="w-full max-w-[400px]">
+      <div class="flex-1 flex items-center justify-center px-8 sm:px-12 lg:px-10 xl:px-12">
+        <div class="w-full max-w-[360px]">
           <!-- Logo -->
           <div class="flex flex-col items-center mb-10">
             <div class="relative mb-4">
@@ -87,7 +77,7 @@ onBeforeUnmount(() => {
             <!-- Error message -->
             <div
               v-if="authStore.error"
-              class="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+              class="p-3 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive dark:text-red-400 text-sm"
             >
               {{ authStore.error }}
             </div>
@@ -103,7 +93,7 @@ onBeforeUnmount(() => {
                   v-model="email"
                   type="email"
                   :placeholder="t('auth.email')"
-                  class="pl-10 h-12 rounded-xl"
+                  class="pl-10 h-12 rounded-xl bg-secondary/60 dark:bg-muted border-transparent dark:border-white/10 focus-visible:ring-offset-0"
                 />
               </div>
             </div>
@@ -119,7 +109,7 @@ onBeforeUnmount(() => {
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
                   :placeholder="t('auth.password')"
-                  class="pl-10 pr-10 h-12 rounded-xl"
+                  class="pl-10 pr-10 h-12 rounded-xl bg-secondary/60 dark:bg-muted border-transparent dark:border-white/10 focus-visible:ring-offset-0"
                 />
                 <button
                   type="button"
@@ -132,119 +122,37 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <!-- Submit -->
-            <Button
+            <!-- Submit — o'chiq holatda ham matn o'qilarli bo'lishi uchun alohida uslub -->
+            <button
               type="submit"
-              class="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 text-[15px] font-semibold"
-              :loading="authStore.loading"
-              :disabled="!isFormValid"
+              :disabled="authStore.loading"
+              class="w-full h-12 rounded-xl text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition-colors
+                     bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                     disabled:cursor-wait"
             >
+              <svg
+                v-if="authStore.loading"
+                class="h-4 w-4 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
               {{ t('auth.loginButton') }}
-            </Button>
+            </button>
           </form>
         </div>
       </div>
     </div>
 
     <!-- Right Column — Showcase (hidden on mobile) -->
-    <div class="hidden lg:flex lg:w-[55%] bg-foreground flex-col relative overflow-hidden">
-      <!-- Background pattern -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 40px 40px;"></div>
-      </div>
+    <div class="hidden lg:flex lg:w-[64%] xl:w-[68%] bg-showcase text-showcase-foreground flex-col relative overflow-hidden">
+      <!-- To'liq fon — jonli xarita illyustratsiyasi -->
+      <MapShowcase />
 
-      <!-- Floating GPS icons -->
-      <div class="absolute top-[10%] left-[8%] text-white/10">
-        <Navigation class="h-16 w-16" />
-      </div>
-      <div class="absolute top-[25%] right-[12%] text-white/10">
-        <MapPinned class="h-12 w-12" />
-      </div>
-      <div class="absolute bottom-[15%] left-[15%] text-white/10">
-        <Route class="h-14 w-14" />
-      </div>
-      <div class="absolute bottom-[30%] right-[8%] text-white/10">
-        <Truck class="h-16 w-16" />
-      </div>
-
-      <!-- Content -->
-      <div class="flex-1 flex flex-col justify-center px-12 xl:px-16 relative z-10">
-        <!-- Testimonial — horizontal slide -->
-        <div class="mb-10">
-          <div class="relative min-h-[140px] overflow-hidden">
-            <div
-              v-for="(tk, i) in testimonialKeys"
-              :key="i"
-              class="absolute inset-0 transition-all duration-500 ease-in-out"
-              :style="{
-                transform: `translateX(${(i - activeTestimonial) * 100}%)`,
-                opacity: i === activeTestimonial ? 1 : 0,
-              }"
-            >
-              <p class="text-2xl xl:text-3xl font-medium text-white leading-relaxed">
-                "{{ t(tk.text) }}"
-              </p>
-              <p class="text-background/70 mt-4 text-sm">— {{ t(tk.author) }}</p>
-            </div>
-          </div>
-
-          <!-- Dots -->
-          <div class="flex gap-2 mt-6">
-            <button
-              v-for="(_, i) in testimonialKeys"
-              :key="i"
-              :class="[
-                'w-2.5 h-2.5 rounded-full transition-all duration-300',
-                activeTestimonial === i ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'
-              ]"
-              @click="activeTestimonial = i"
-            />
-          </div>
-        </div>
-
-        <!-- Feature cards -->
-        <div class="grid grid-cols-2 gap-4 mt-4">
-          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
-            <div class="w-10 h-10 rounded-xl bg-green-400/20 flex items-center justify-center mb-3">
-              <Navigation class="h-5 w-5 text-green-300" />
-            </div>
-            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureLiveTracking') }}</h3>
-            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureLiveTrackingDesc') }}</p>
-          </div>
-
-          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
-            <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mb-3">
-              <Route class="h-5 w-5 text-primary" />
-            </div>
-            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureRouteHistory') }}</h3>
-            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureRouteHistoryDesc') }}</p>
-          </div>
-
-          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
-            <div class="w-10 h-10 rounded-xl bg-purple-400/20 flex items-center justify-center mb-3">
-              <Truck class="h-5 w-5 text-purple-300" />
-            </div>
-            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureFleetManagement') }}</h3>
-            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureFleetManagementDesc') }}</p>
-          </div>
-
-          <div class="bg-background/10 backdrop-blur-sm rounded-2xl p-5 border border-background/10">
-            <div class="w-10 h-10 rounded-xl bg-orange-400/20 flex items-center justify-center mb-3">
-              <MapPinned class="h-5 w-5 text-orange-300" />
-            </div>
-            <h3 class="text-white font-semibold text-sm">{{ t('auth.featureSmartAlerts') }}</h3>
-            <p class="text-background/70 text-xs mt-1">{{ t('auth.featureSmartAlertsDesc') }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom decoration -->
-      <div class="px-12 pb-6 relative z-10">
-        <div class="flex items-center gap-3 text-background/50 text-xs">
-          <MapPin class="h-4 w-4" />
-          <span>{{ t('app.title') }} — {{ t('app.subtitle') }}</span>
-        </div>
-      </div>
     </div>
   </div>
 </template>

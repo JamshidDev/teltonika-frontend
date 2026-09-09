@@ -26,6 +26,9 @@
     --input: 50 10% 88.2%;
     --ring: 48 100% 45.7%;           /* yellow-deep #e9b900 */
     --radius: 0.5rem;
+    /* Showcase panel — ikkala temada ham qorong'i qoladi (brend ink) */
+    --showcase: 0 0% 6.7%;
+    --showcase-foreground: 0 0% 100%;
     /* --landing-shadow */
     --brand-shadow: 0 24px 70px rgb(17 17 17 / 9%), 0 3px 12px rgb(17 17 17 / 5%);
     --chart-1: 12 76% 61%;
@@ -55,6 +58,8 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 48 100% 45.7%;
+    --showcase: 0 0% 9%;
+    --showcase-foreground: 0 0% 100%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -88,6 +93,24 @@
     /* dvh — mobil brauzer paneli ochilib-yopilganda balandlik sakramaydi */
     height: 100dvh;
     overflow: hidden;
+  }
+}
+
+/* Chrome autofill inputni oqartirmasin */
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--secondary)) inset;
+    caret-color: hsl(var(--foreground));
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--muted)) inset;
   }
 }
 
