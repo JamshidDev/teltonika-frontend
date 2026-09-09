@@ -168,6 +168,7 @@ onMounted(() => {
         <table class="w-full min-w-[600px] md:min-w-0 table-fixed">
           <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
+              <th class="text-center px-4 py-3 font-medium text-sm w-[52px] min-w-[52px]">#</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[56px] min-w-[56px] md:w-[80px] md:min-w-[80px]">ID</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[195px] min-w-[195px] md:w-auto md:min-w-0">{{ t('device.imei') }}</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[110px] min-w-[110px] md:w-[200px] md:min-w-[200px]">{{ t('device.model') }}</th>
@@ -177,10 +178,11 @@ onMounted(() => {
           </thead>
           <tbody class="divide-y divide-border">
               <tr
-                v-for="device in devicesStore.devices"
+                v-for="(device, index) in devicesStore.devices"
                 :key="device.id"
                 class="hover:bg-muted/30 transition-colors"
               >
+                <td class="px-4 py-3 text-sm text-center text-muted-foreground">{{ (devicesStore.currentPage - 1) * pageSize + index + 1 }}</td>
                 <td class="px-4 py-3 text-sm">{{ device.id }}</td>
                 <td class="px-4 py-3 text-sm">
                   <div class="flex items-center gap-3">
@@ -220,7 +222,7 @@ onMounted(() => {
 
             <!-- Empty state -->
             <tr v-if="devicesStore.devices.length === 0 && !devicesStore.loading">
-              <td colspan="5" class="px-4 py-12 text-center text-muted-foreground">
+              <td colspan="6" class="px-4 py-12 text-center text-muted-foreground">
                 {{ t('device.noDevices') }}
               </td>
             </tr>

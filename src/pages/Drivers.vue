@@ -172,6 +172,7 @@ onMounted(() => {
         <table class="w-full min-w-[800px] md:min-w-0 table-fixed">
           <thead class="bg-muted sticky top-0 z-[5]">
             <tr>
+              <th class="text-center px-4 py-3 font-medium text-sm w-[52px] min-w-[52px]">#</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[64px] min-w-[64px] md:w-[80px] md:min-w-[80px]">ID</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[210px] min-w-[210px] md:w-auto md:min-w-0">{{ t('driver.fullName') }}</th>
               <th class="text-left px-4 py-3 font-medium text-sm w-[165px] min-w-[165px] md:w-[260px] md:min-w-[260px]">{{ t('driver.phone') }}</th>
@@ -182,10 +183,11 @@ onMounted(() => {
           </thead>
           <tbody class="divide-y divide-border">
               <tr
-                v-for="driver in driversStore.drivers"
+                v-for="(driver, index) in driversStore.drivers"
                 :key="driver.id"
                 class="hover:bg-muted/30 transition-colors"
               >
+                <td class="px-4 py-3 text-sm text-center text-muted-foreground">{{ (driversStore.currentPage - 1) * pageSize + index + 1 }}</td>
                 <td class="px-4 py-3 text-sm">{{ driver.id }}</td>
                 <td class="px-4 py-3 text-sm">
                   <div class="flex items-center gap-3">
@@ -226,7 +228,7 @@ onMounted(() => {
 
             <!-- Empty state -->
             <tr v-if="driversStore.drivers.length === 0 && !driversStore.loading">
-              <td colspan="6" class="px-4 py-12 text-center text-muted-foreground">
+              <td colspan="7" class="px-4 py-12 text-center text-muted-foreground">
                 {{ t('driver.noDrivers') }}
               </td>
             </tr>
