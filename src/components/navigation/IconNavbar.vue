@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useUiStore, type TabType } from '@/stores/ui.store'
+import { useAuthStore } from '@/stores/auth.store'
 import {
   Tooltip,
   TooltipContent,
@@ -19,27 +20,36 @@ import {
   Settings,
   MapPin,
   Power,
+  ShieldCheck,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const auth = useAuthStore()
 
 // Navigation items
-const navItems = computed(() => [
-  { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/map' },
-  { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles' },
-  { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers' },
-  { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices' },
-  { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history' },
-  { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events' },
-  { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports' },
-])
+// Ruxsat yo'q sahifa menyuda umuman ko'rinmaydi.
+const navItems = computed(() =>
+  [
+    { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/map', permission: 'map:read' },
+    { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles', permission: 'vehicles:read' },
+    { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers', permission: 'drivers:read' },
+    { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices', permission: 'devices:read' },
+    { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history', permission: 'history:read' },
+    { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events', permission: 'engine-events:read' },
+    { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports', permission: 'reports:read' },
+    { key: 'users' as TabType, label: t('nav.users'), icon: Users, route: '/users', permission: 'users:read' },
+    { key: 'roles' as TabType, label: t('nav.roles'), icon: ShieldCheck, route: '/roles', permission: 'roles:read' },
+  ].filter((i) => auth.can(i.permission)),
+)
 
-const bottomItems = computed(() => [
-  { key: 'settings' as TabType, label: t('nav.settings'), icon: Settings, route: '/settings' },
-])
+const bottomItems = computed(() =>
+  [
+    { key: 'settings' as TabType, label: t('nav.settings'), icon: Settings, route: '/settings', permission: 'settings:read' },
+  ].filter((i) => auth.can(i.permission)),
+)
 
 const activeTab = computed(() => {
   const path = route.path
@@ -51,6 +61,8 @@ const activeTab = computed(() => {
   if (path.includes('engine-events')) return 'engine-events'
   if (path.includes('events')) return 'events'
   if (path.includes('reports')) return 'reports'
+  if (path.includes('users')) return 'users'
+  if (path.includes('roles')) return 'roles'
   if (path.includes('settings')) return 'settings'
   return 'dashboard'
 })

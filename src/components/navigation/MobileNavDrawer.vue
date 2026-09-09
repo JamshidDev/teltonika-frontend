@@ -4,16 +4,18 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { DrawerRoot, DrawerContent, DrawerOverlay, DrawerPortal } from 'vaul-vue'
 import { useUiStore, type TabType } from '@/stores/ui.store'
+import { useAuthStore } from '@/stores/auth.store'
 import {
   X, MapPin,
   LayoutDashboard, Car, Users, Cpu, History,
-  Power, FileText, Settings,
+  Power, FileText, Settings, ShieldCheck,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const auth = useAuthStore()
 
 // Holat ui.store'da — header'dagi tugma ochadi.
 const open = computed({
@@ -21,17 +23,21 @@ const open = computed({
   set: (v: boolean) => uiStore.setNavDrawerOpen(v),
 })
 
-// IconNavbar bilan bir xil ro'yxat — mobilda hammasi shu yerdan ochiladi.
-const navItems = computed(() => [
-  { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/map' },
-  { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles' },
-  { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers' },
-  { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices' },
-  { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history' },
-  { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events' },
-  { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports' },
-  { key: 'settings' as TabType, label: t('nav.settings'), icon: Settings, route: '/settings' },
-])
+// IconNavbar bilan bir xil ro'yxat — ruxsat bo'yicha filtrlanadi.
+const navItems = computed(() =>
+  [
+    { key: 'dashboard' as TabType, label: t('nav.dashboard'), icon: LayoutDashboard, route: '/map', permission: 'map:read' },
+    { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles', permission: 'vehicles:read' },
+    { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers', permission: 'drivers:read' },
+    { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices', permission: 'devices:read' },
+    { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history', permission: 'history:read' },
+    { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events', permission: 'engine-events:read' },
+    { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports', permission: 'reports:read' },
+    { key: 'users' as TabType, label: t('nav.users'), icon: Users, route: '/users', permission: 'users:read' },
+    { key: 'roles' as TabType, label: t('nav.roles'), icon: ShieldCheck, route: '/roles', permission: 'roles:read' },
+    { key: 'settings' as TabType, label: t('nav.settings'), icon: Settings, route: '/settings', permission: 'settings:read' },
+  ].filter((i) => auth.can(i.permission)),
+)
 
 const activeKey = computed(() => {
   const p = route.path

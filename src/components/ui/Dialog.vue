@@ -6,11 +6,21 @@ const props = withDefaults(
   defineProps<{
     open?: boolean
     title?: string
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl'
   }>(),
   {
     open: false,
+    size: 'md',
   }
 )
+
+const sizeClasses: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+  xxl: 'max-w-[1200px]',
+}
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -47,7 +57,8 @@ function handleBackdropClick(event: MouseEvent) {
         <div
           :class="
             cn(
-              'relative z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg'
+              'relative z-50 grid w-full gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg mx-4 max-h-[92vh] overflow-y-auto',
+              sizeClasses[props.size]
             )
           "
         >
