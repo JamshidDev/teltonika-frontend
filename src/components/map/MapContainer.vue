@@ -97,8 +97,17 @@ const followedName = computed(() => {
   return cleaned || name
 })
 
+// "90 124 MBA" -> "124", "01 A 123 BC" -> "123". Topilmasa oxirgi 3 raqam.
+function plateShort(carNumber?: string | null): string {
+  if (!carNumber) return ''
+  const m = carNumber.match(/(\d{3})(?=\s*[A-Za-z]{2,3}\s*$)/)
+  if (m?.[1]) return m[1]
+  const digits = carNumber.replace(/\D/g, '')
+  return digits.length >= 3 ? digits.slice(-3) : digits
+}
+
 // Create marker icon with car icon and rotation
-function createCarIcon(angle: number = 0, ignition: boolean = false, speed: number = 0, isFollowed: boolean = false) {
+function createCarIcon(angle: number = 0, ignition: boolean = false, speed: number = 0, isFollowed: boolean = false, plate: string = '') {
   const rippleHtml = ignition ? `
         <!-- Ripple effect -->
         <div class="car-ripple"></div>
@@ -116,12 +125,23 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
   const box = isDesktop.value ? 48 : 56
   const img = isDesktop.value ? 32 : 40
 
+  // Davlat raqamining 3 xonasi — mashina orqasida, ikonkadan 5px naridа.
+  // Burchak 0 = shimol; orqa yo'nalish = (-sin, +cos).
+  const rad = (angle * Math.PI) / 180
+  const gap = img / 2 + 5 + 9 // yarim ikonka + 5px + yarim badge
+  const bx = -Math.sin(rad) * gap
+  const by = Math.cos(rad) * gap
+  const plateBadgeHtml = !isFollowed && plate ? `
+        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx.toFixed(1)}px), calc(-50% + ${by.toFixed(1)}px));">${plate}</div>
+  ` : ''
+
   return L.divIcon({
     className: 'car-marker',
     html: `
       <div style="position: relative; width: ${box}px; height: ${box}px;">
         ${rippleHtml}
         ${speedBadgeHtml}
+        ${plateBadgeHtml}
         <!-- Car icon -->
         <div style="
           position: absolute;
@@ -138,6 +158,14 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
     iconSize: [box, box],
     iconAnchor: [box / 2, box / 2],
   })
+}
+
+// Kichik zoomda raqam badge'lari bir-birining ustiga tushmasin.
+const PLATE_MIN_ZOOM = 13
+function updatePlateVisibility() {
+  if (!map.value) return
+  const container = map.value.getContainer()
+  container.classList.toggle('hide-plates', map.value.getZoom() < PLATE_MIN_ZOOM)
 }
 
 // Get appropriate tile based on dark mode
@@ -217,7 +245,9 @@ function initMap() {
   // Show/hide route arrows based on zoom level
   map.value.on('zoomend', () => {
     updateRouteArrowsVisibility()
+    updatePlateVisibility()
   })
+  updatePlateVisibility()
 
   // Initial markers
   updateMarkers()
@@ -278,21 +308,23 @@ function updateMarkers() {
     const speed = vehicle.speed || 0
     const isFollowed = vehiclesStore.followedVehicleId === vehicle.carId
 
+    const plate = plateShort(vehicle.carNumber)
+
     // Tezlik faqat follow rejimida ikonkada ko'rinadi — aks holda kalitga kirmaydi.
     const iconKey = isFollowed
       ? `${angle}|${ignition}|${speed}|1|${isDesktop.value}`
-      : `${angle}|${ignition}|0|${isDesktop.value}`
+      : `${angle}|${ignition}|0|${isDesktop.value}|${plate}`
 
     if (existingMarker) {
       existingMarker.setLatLng(position)
       // setIcon DOM elementini qaytadan yaratadi — faqat kerak bo'lganda.
       if (markerIconKeys.get(vehicle.carId) !== iconKey) {
-        existingMarker.setIcon(createCarIcon(angle, ignition, speed, isFollowed))
+        existingMarker.setIcon(createCarIcon(angle, ignition, speed, isFollowed, plate))
         markerIconKeys.set(vehicle.carId, iconKey)
       }
     } else {
       const marker = L.marker(position, {
-        icon: createCarIcon(angle, ignition, speed, isFollowed),
+        icon: createCarIcon(angle, ignition, speed, isFollowed, plate),
         title: vehicle.name,
       })
 
@@ -1514,6 +1546,28 @@ onUnmounted(() => {
     animation: none;
     opacity: 0;
   }
+}
+
+.car-plate-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: #ffd21c;
+  color: #111111;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  padding: 2px 5px;
+  border-radius: 7px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 9;
+}
+
+.hide-plates .car-plate-badge {
+  display: none;
 }
 
 .car-speed-badge {
