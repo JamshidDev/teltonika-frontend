@@ -126,13 +126,19 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
   const img = isDesktop.value ? 32 : 40
 
   // Davlat raqamining 3 xonasi — mashina orqasida, ikonkadan 5px naridа.
+  // Burchak eng yaqin 90 ga qirqiladi: badge doim tepa/past/chap/o'ngda,
+  // diagonal turmaydi — barcha markerlar bir xil ko'rinadi.
+  const snapped = (((Math.round(angle / 90) * 90) % 360) + 360) % 360
+  const isSide = snapped === 90 || snapped === 270
+  const BADGE_W = 28
+  const BADGE_H = 14
+  const gap = img / 2 + 5 + (isSide ? BADGE_W / 2 : BADGE_H / 2)
+  const rad = (snapped * Math.PI) / 180
   // Burchak 0 = shimol; orqa yo'nalish = (-sin, +cos).
-  const rad = (angle * Math.PI) / 180
-  const gap = img / 2 + 5 + 9 // yarim ikonka + 5px + yarim badge
-  const bx = -Math.sin(rad) * gap
-  const by = Math.cos(rad) * gap
+  const bx = Math.round(-Math.sin(rad) * gap)
+  const by = Math.round(Math.cos(rad) * gap)
   const plateBadgeHtml = !isFollowed && plate ? `
-        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx.toFixed(1)}px), calc(-50% + ${by.toFixed(1)}px));">${plate}</div>
+        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx}px), calc(-50% + ${by}px));">${plate}</div>
   ` : ''
 
   return L.divIcon({
@@ -1559,6 +1565,8 @@ onUnmounted(() => {
   line-height: 1;
   letter-spacing: 0.02em;
   padding: 2px 5px;
+  min-width: 28px;
+  text-align: center;
   border-radius: 7px;
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
