@@ -568,7 +568,7 @@ onMounted(() => {
                   >
                     <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 min-w-0">
+                      <div class="flex items-center justify-between gap-2 min-w-0">
                         <p class="text-sm font-medium truncate">{{ car.name }}</p>
                         <span
                           v-if="car.carNumber"
@@ -789,7 +789,7 @@ onMounted(() => {
                   >
                     <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 min-w-0">
+                      <div class="flex items-center justify-between gap-2 min-w-0">
                         <p class="text-sm font-medium truncate">{{ car.name }}</p>
                         <span
                           v-if="car.carNumber"
@@ -1098,7 +1098,7 @@ onMounted(() => {
           >
             <img :src="carIconSvg" alt="car" class="h-7 w-7 flex-shrink-0" />
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 min-w-0">
+              <div class="flex items-center justify-between gap-2 min-w-0">
                 <p class="text-sm font-medium truncate">{{ car.name }}</p>
                 <span
                   v-if="car.carNumber"
