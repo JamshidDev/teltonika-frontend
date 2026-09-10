@@ -114,12 +114,6 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
         <div class="car-ripple car-ripple-delay"></div>
   ` : ''
 
-  const speedBadgeHtml = isFollowed ? `
-        <!-- Speed badge -->
-        <div class="car-speed-badge">
-          ${speed} <span style="font-size: 9px;">km/h</span>
-        </div>
-  ` : ''
 
   // Mobilda barmoq uchun kattaroq: 56px maydon / 40px tasvir.
   const box = isDesktop.value ? 48 : 56
@@ -136,8 +130,13 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
   const by = Math.round(Math.cos(rad) * gap)
   // Matn teskari o'girilib qolmasligi uchun 180 ga aylantiramiz.
   const badgeRot = heading > 90 && heading < 270 ? heading - 180 : heading
+  // Ikkala badge ham bir xil joyda: kuzatuvda tezlik, aks holda raqam.
+  const badgeStyle = `transform: translate(calc(-50% + ${bx}px), calc(-50% + ${by}px)) rotate(${badgeRot}deg);`
+  const speedBadgeHtml = isFollowed ? `
+        <div class="car-speed-badge" style="${badgeStyle}">${speed}<span class="car-badge-unit">km/h</span></div>
+  ` : ''
   const plateBadgeHtml = !isFollowed && plate ? `
-        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx}px), calc(-50% + ${by}px)) rotate(${badgeRot}deg);">${plate}</div>
+        <div class="car-plate-badge" style="${badgeStyle}">${plate}</div>
   ` : ''
 
   return L.divIcon({
@@ -1579,29 +1578,28 @@ onUnmounted(() => {
 
 .car-speed-badge {
   position: absolute;
-  top: -8px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
   background: #ffd21c;
   color: #111111;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  min-width: 28px;
+  text-align: center;
+  border-radius: 7px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
   z-index: 10;
-  animation: speed-badge-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes speed-badge-pulse {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.05);
-  }
+.car-badge-unit {
+  font-size: 7px;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 2px;
 }
 
 .car-ripple {
