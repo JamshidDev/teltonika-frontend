@@ -33,7 +33,7 @@ import {
 import carIconSvg from '@/assets/taxi-marker.svg'
 import { DrawerRoot, DrawerPortal, DrawerOverlay, DrawerContent, DrawerHandle } from 'vaul-vue'
 import { useBreakpoint } from '@/composables/useBreakpoint'
-import { Check } from 'lucide-vue-next'
+import { Check, ArrowLeftRight } from 'lucide-vue-next'
 import { CalendarDate, type DateValue } from '@internationalized/date'
 import { carsApi } from '@/api/cars'
 import type { TimelineItem } from '@/types'
@@ -538,15 +538,21 @@ onMounted(() => {
             <!-- Mobilda varaq, desktopda popover -->
             <button
               v-if="!isDesktop"
-              class="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted active:bg-accent transition-colors"
+              class="h-9 flex-shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 active:bg-accent transition-colors"
+              :title="t('sidebar.changeCar')"
               @click="openCarPicker('history')"
             >
               <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+              <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
             </button>
             <Popover v-else v-model:open="historySelectorOpen">
               <PopoverTrigger as-child>
-                <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors">
+                <button
+                  class="h-8 flex-shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2 hover:bg-accent transition-colors"
+                  :title="t('sidebar.changeCar')"
+                >
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+                  <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
               <PopoverContent class="w-72 p-0" align="end">
@@ -562,8 +568,16 @@ onMounted(() => {
                   >
                     <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium truncate">{{ car.name }}</p>
-                      <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+                      <div class="flex items-center gap-2 min-w-0">
+                        <p class="text-sm font-medium truncate">{{ car.name }}</p>
+                        <span
+                          v-if="car.carNumber"
+                          class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
+                        >{{ car.carNumber }}</span>
+                      </div>
+                      <p class="text-xs text-muted-foreground truncate">
+                        {{ car.driver?.fullName || t('vehicle.selectDriver') }}
+                      </p>
                     </div>
                   </div>
                   <div v-if="carsStore.cars.length === 0" class="p-4 text-center text-sm text-muted-foreground">
@@ -743,17 +757,21 @@ onMounted(() => {
             <!-- Mobilda varaq, desktopda popover -->
             <button
               v-if="!isDesktop"
-              class="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted active:bg-accent transition-colors"
+              class="h-9 flex-shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 active:bg-accent transition-colors"
+              :title="t('sidebar.changeCar')"
               @click="openCarPicker('scheduled')"
             >
               <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+              <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
             </button>
             <Popover v-else v-model:open="carSelectorOpen">
               <PopoverTrigger as-child>
                 <button
-                  class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors"
+                  class="h-8 flex-shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2 hover:bg-accent transition-colors"
+                  :title="t('sidebar.changeCar')"
                 >
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+                  <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
               <PopoverContent class="w-72 p-0" align="end">
@@ -771,8 +789,16 @@ onMounted(() => {
                   >
                     <img :src="carIconSvg" alt="car" class="h-5 w-5 flex-shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium truncate">{{ car.name }}</p>
-                      <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+                      <div class="flex items-center gap-2 min-w-0">
+                        <p class="text-sm font-medium truncate">{{ car.name }}</p>
+                        <span
+                          v-if="car.carNumber"
+                          class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
+                        >{{ car.carNumber }}</span>
+                      </div>
+                      <p class="text-xs text-muted-foreground truncate">
+                        {{ car.driver?.fullName || t('vehicle.selectDriver') }}
+                      </p>
                     </div>
                   </div>
                   <div v-if="carsStore.cars.length === 0" class="p-4 text-center text-sm text-muted-foreground">
@@ -1072,8 +1098,16 @@ onMounted(() => {
           >
             <img :src="carIconSvg" alt="car" class="h-7 w-7 flex-shrink-0" />
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">{{ car.name }}</p>
-              <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+              <div class="flex items-center gap-2 min-w-0">
+                <p class="text-sm font-medium truncate">{{ car.name }}</p>
+                <span
+                  v-if="car.carNumber"
+                  class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
+                >{{ car.carNumber }}</span>
+              </div>
+              <p class="text-xs text-muted-foreground truncate">
+                {{ car.driver?.fullName || t('vehicle.selectDriver') }}
+              </p>
             </div>
             <Check v-if="carPickerSelectedId === car.id" class="h-5 w-5 text-primary flex-shrink-0" />
           </button>

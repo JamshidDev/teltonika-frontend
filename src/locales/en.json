@@ -58,6 +58,7 @@
     "noMotionEvents": "No status data",
     "selectDateForRoutes": "Select a date to view routes",
     "selectCar": "Select a vehicle",
+    "changeCar": "Change vehicle",
     "noRouteData": "No route data for this date"
   },
   "vehicle": {

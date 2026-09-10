@@ -58,6 +58,7 @@
     "noMotionEvents": "Holat ma'lumotlari yo'q",
     "selectDateForRoutes": "Yo'llarni ko'rish uchun sana tanlang",
     "selectCar": "Transport tanlang",
+    "changeCar": "Transportni o'zgartirish",
     "noRouteData": "Bu sana uchun ma'lumot yo'q"
   },
   "vehicle": {

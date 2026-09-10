@@ -165,7 +165,7 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
 }
 
 // Kichik zoomda raqam badge'lari bir-birining ustiga tushmasin.
-const PLATE_MIN_ZOOM = 13
+const PLATE_MIN_ZOOM = 11
 function updatePlateVisibility() {
   if (!map.value) return
   const container = map.value.getContainer()

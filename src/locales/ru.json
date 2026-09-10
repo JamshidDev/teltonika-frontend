@@ -58,6 +58,7 @@
     "noMotionEvents": "Нет данных о статусе",
     "selectDateForRoutes": "Выберите дату для просмотра маршрутов",
     "selectCar": "Выберите транспорт",
+    "changeCar": "Сменить транспорт",
     "noRouteData": "Нет данных за эту дату"
   },
   "vehicle": {
