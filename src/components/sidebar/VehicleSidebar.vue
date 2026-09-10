@@ -33,7 +33,7 @@ import {
 import carIconSvg from '@/assets/taxi-marker.svg'
 import { DrawerRoot, DrawerPortal, DrawerOverlay, DrawerContent, DrawerHandle } from 'vaul-vue'
 import { useBreakpoint } from '@/composables/useBreakpoint'
-import { Check, ArrowLeftRight } from 'lucide-vue-next'
+import { Check, ArrowUpDown } from 'lucide-vue-next'
 import { CalendarDate, type DateValue } from '@internationalized/date'
 import { carsApi } from '@/api/cars'
 import type { TimelineItem } from '@/types'
@@ -543,7 +543,7 @@ onMounted(() => {
               @click="openCarPicker('history')"
             >
               <img :src="carIconSvg" alt="car" class="h-5 w-5" />
-              <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowUpDown class="h-3.5 w-3.5 text-muted-foreground" />
             </button>
             <Popover v-else v-model:open="historySelectorOpen">
               <PopoverTrigger as-child>
@@ -552,7 +552,7 @@ onMounted(() => {
                   :title="t('sidebar.changeCar')"
                 >
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
-                  <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
+                  <ArrowUpDown class="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
               <PopoverContent class="w-72 p-0" align="end">
@@ -575,7 +575,7 @@ onMounted(() => {
                           class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
                         >{{ car.carNumber }}</span>
                       </div>
-                      <p class="text-xs text-muted-foreground truncate">
+                      <p class="text-xs text-muted-foreground break-words">
                         {{ car.driver?.fullName || t('vehicle.selectDriver') }}
                       </p>
                     </div>
@@ -762,7 +762,7 @@ onMounted(() => {
               @click="openCarPicker('scheduled')"
             >
               <img :src="carIconSvg" alt="car" class="h-5 w-5" />
-              <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowUpDown class="h-3.5 w-3.5 text-muted-foreground" />
             </button>
             <Popover v-else v-model:open="carSelectorOpen">
               <PopoverTrigger as-child>
@@ -771,7 +771,7 @@ onMounted(() => {
                   :title="t('sidebar.changeCar')"
                 >
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
-                  <ArrowLeftRight class="h-3.5 w-3.5 text-muted-foreground" />
+                  <ArrowUpDown class="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
               <PopoverContent class="w-72 p-0" align="end">
@@ -796,7 +796,7 @@ onMounted(() => {
                           class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
                         >{{ car.carNumber }}</span>
                       </div>
-                      <p class="text-xs text-muted-foreground truncate">
+                      <p class="text-xs text-muted-foreground break-words">
                         {{ car.driver?.fullName || t('vehicle.selectDriver') }}
                       </p>
                     </div>
@@ -1105,7 +1105,7 @@ onMounted(() => {
                   class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground"
                 >{{ car.carNumber }}</span>
               </div>
-              <p class="text-xs text-muted-foreground truncate">
+              <p class="text-xs text-muted-foreground break-words">
                 {{ car.driver?.fullName || t('vehicle.selectDriver') }}
               </p>
             </div>
