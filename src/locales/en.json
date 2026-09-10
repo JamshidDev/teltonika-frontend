@@ -277,15 +277,6 @@
     "history": "History",
     "more": "More"
   },
-  "traffic": {
-    "title": "Traffic calculation",
-    "calculate": "Calculate",
-    "totalTraffic": "Total traffic",
-    "selectCar": "Select car",
-    "from": "From",
-    "to": "To",
-    "noResult": "No result found"
-  },
   "access": {
     "title": "No access",
     "description": "Your role ({role}) has no accessible pages. Contact an administrator."

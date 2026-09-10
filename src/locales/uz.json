@@ -277,15 +277,6 @@
     "history": "Tarix",
     "more": "Ko'proq"
   },
-  "traffic": {
-    "title": "Trafik hisoblash",
-    "calculate": "Hisoblash",
-    "totalTraffic": "Umumiy trafik",
-    "selectCar": "Mashina tanlang",
-    "from": "Boshlanish",
-    "to": "Tugash",
-    "noResult": "Natija topilmadi"
-  },
   "access": {
     "title": "Ruxsat yo‘q",
     "description": "Sizning rolingiz ({role}) uchun ochiq sahifa yo‘q. Administratorga murojaat qiling."

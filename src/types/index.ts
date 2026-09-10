@@ -277,11 +277,3 @@ export interface TimelineRoutePoint {
   angle: number
   recordedAt: string
 }
-
-export interface TrafficStats {
-  car: { id: number; name: string; carNumber: string | null } | null
-  device: { id: number; imei: string; model: string } | null
-  driver: { id: number; fullName: string; phone: string } | null
-  totalBytes: number
-  totalFormatted: string
-}
