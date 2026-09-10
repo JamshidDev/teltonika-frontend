@@ -28,7 +28,7 @@ const routes: RouteRecordRaw[] = [
         path: 'history',
         name: 'history',
         component: () => import('@/pages/History.vue'),
-        meta: { permission: 'history:read' },
+        meta: { permission: 'history-page:read' },
       },
       {
         path: 'reports',

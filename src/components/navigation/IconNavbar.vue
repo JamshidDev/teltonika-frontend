@@ -37,7 +37,7 @@ const navItems = computed(() =>
     { key: 'vehicles' as TabType, label: t('nav.vehicles'), icon: Car, route: '/vehicles', permission: 'vehicles:read' },
     { key: 'drivers' as TabType, label: t('nav.drivers'), icon: Users, route: '/drivers', permission: 'drivers:read' },
     { key: 'devices' as TabType, label: t('nav.devices'), icon: Cpu, route: '/devices', permission: 'devices:read' },
-    { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history', permission: 'history:read' },
+    { key: 'history' as TabType, label: t('nav.history'), icon: History, route: '/history', permission: 'history-page:read' },
     { key: 'engine-events' as TabType, label: t('nav.engineEvents'), icon: Power, route: '/engine-events', permission: 'engine-events:read' },
     { key: 'reports' as TabType, label: t('nav.reports'), icon: FileText, route: '/reports', permission: 'reports:read' },
     { key: 'users' as TabType, label: t('nav.users'), icon: Users, route: '/users', permission: 'users:read' },
