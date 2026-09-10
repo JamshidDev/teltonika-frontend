@@ -125,20 +125,19 @@ function createCarIcon(angle: number = 0, ignition: boolean = false, speed: numb
   const box = isDesktop.value ? 48 : 56
   const img = isDesktop.value ? 32 : 40
 
-  // Davlat raqamining 3 xonasi — mashina orqasida, ikonkadan 5px naridа.
-  // Burchak eng yaqin 90 ga qirqiladi: badge doim tepa/past/chap/o'ngda,
-  // diagonal turmaydi — barcha markerlar bir xil ko'rinadi.
-  const snapped = (((Math.round(angle / 90) * 90) % 360) + 360) % 360
-  const isSide = snapped === 90 || snapped === 270
-  const BADGE_W = 28
+  // Davlat raqamining 3 xonasi — mashinaning orqa raqami kabi: ikonkaning
+  // orqasida, 5px naridа va u bilan birga buriladi.
   const BADGE_H = 14
-  const gap = img / 2 + 5 + (isSide ? BADGE_W / 2 : BADGE_H / 2)
-  const rad = (snapped * Math.PI) / 180
+  const heading = ((angle % 360) + 360) % 360
+  const rad = (heading * Math.PI) / 180
+  const gap = img / 2 + 5 + BADGE_H / 2
   // Burchak 0 = shimol; orqa yo'nalish = (-sin, +cos).
   const bx = Math.round(-Math.sin(rad) * gap)
   const by = Math.round(Math.cos(rad) * gap)
+  // Matn teskari o'girilib qolmasligi uchun 180 ga aylantiramiz.
+  const badgeRot = heading > 90 && heading < 270 ? heading - 180 : heading
   const plateBadgeHtml = !isFollowed && plate ? `
-        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx}px), calc(-50% + ${by}px));">${plate}</div>
+        <div class="car-plate-badge" style="transform: translate(calc(-50% + ${bx}px), calc(-50% + ${by}px)) rotate(${badgeRot}deg);">${plate}</div>
   ` : ''
 
   return L.divIcon({
