@@ -374,6 +374,11 @@ function locateMe() {
     return
   }
 
+  // Kuzatuv yoqiq bo'lsa — xarita foydalanuvchiga ko'chgani uchun bekor qilinadi.
+  if (vehiclesStore.followedVehicleId) {
+    vehiclesStore.unfollowVehicle()
+  }
+
   locating.value = true
   navigator.geolocation.getCurrentPosition(
     (pos) => {
