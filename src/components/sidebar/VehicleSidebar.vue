@@ -67,6 +67,12 @@ const tabs = computed(() => [
   { key: 'scheduled' as SidebarTab, label: t('sidebar.scheduled'), icon: Route },
 ])
 
+// Komponent qayta ulanganda (mobil varaq yopilib-ochilganda) marker holati tab
+// bilan mos bo'lsin — watch faqat qiymat o'zgarganda ishlaydi.
+onMounted(() => {
+  vehiclesStore.markersHidden = activeTab.value !== 'live'
+})
+
 // Clear map elements when switching tabs
 watch(activeTab, (newTab, oldTab) => {
   // Clear live tab elements when leaving
