@@ -526,9 +526,9 @@ onMounted(() => {
           <div class="flex items-center justify-between p-2">
             <div class="flex-1 min-w-0">
               <template v-if="selectedHistoryCar">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-medium truncate">{{ selectedHistoryCar.name }}</span>
-                  <span v-if="selectedHistoryCar.carNumber" class="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono text-muted-foreground">{{ selectedHistoryCar.carNumber }}</span>
+                <div class="min-w-0">
+                  <p class="text-xs font-medium truncate leading-tight">{{ selectedHistoryCar.name }}</p>
+                  <p v-if="selectedHistoryCar.carNumber" class="mt-0.5 text-[10px] font-mono text-muted-foreground leading-tight">{{ selectedHistoryCar.carNumber }}</p>
                 </div>
               </template>
               <template v-else>
@@ -743,9 +743,9 @@ onMounted(() => {
             <!-- Left: Selected car info -->
             <div class="flex-1 min-w-0">
               <template v-if="selectedScheduledCar">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-medium truncate">{{ selectedScheduledCar.name }}</span>
-                  <span v-if="selectedScheduledCar.carNumber" class="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono text-muted-foreground">{{ selectedScheduledCar.carNumber }}</span>
+                <div class="min-w-0">
+                  <p class="text-xs font-medium truncate leading-tight">{{ selectedScheduledCar.name }}</p>
+                  <p v-if="selectedScheduledCar.carNumber" class="mt-0.5 text-[10px] font-mono text-muted-foreground leading-tight">{{ selectedScheduledCar.carNumber }}</p>
                 </div>
               </template>
               <template v-else>
