@@ -31,6 +31,9 @@ import {
   Square,
 } from 'lucide-vue-next'
 import carIconSvg from '@/assets/taxi-marker.svg'
+import { DrawerRoot, DrawerPortal, DrawerOverlay, DrawerContent, DrawerHandle } from 'vaul-vue'
+import { useBreakpoint } from '@/composables/useBreakpoint'
+import { Check } from 'lucide-vue-next'
 import { CalendarDate, type DateValue } from '@internationalized/date'
 import { carsApi } from '@/api/cars'
 import type { TimelineItem } from '@/types'
@@ -116,6 +119,40 @@ const calendarValue = computed({
 })
 
 // Car selector for scheduled tab
+const { isDesktop } = useBreakpoint()
+
+// Mobilda tanlagich pastki varaq orqali ochiladi — popover varaq ostida qolib
+// ketardi va qidiruvsiz ro'yxatdan tanlash noqulay edi.
+const carPickerOpen = ref(false)
+const carPickerTarget = ref<'scheduled' | 'history'>('scheduled')
+const carPickerQuery = ref('')
+
+const carPickerList = computed(() => {
+  const q = carPickerQuery.value.trim().toLowerCase()
+  if (!q) return carsStore.cars
+  return carsStore.cars.filter((c) => {
+    const name = c.name?.toLowerCase() ?? ''
+    const number = c.carNumber?.toLowerCase() ?? ''
+    return name.includes(q) || number.includes(q) || number.replace(/\s+/g, '').includes(q.replace(/\s+/g, ''))
+  })
+})
+
+const carPickerSelectedId = computed(() =>
+  carPickerTarget.value === 'history' ? selectedHistoryCarId.value : selectedScheduledCarId.value
+)
+
+function openCarPicker(target: 'scheduled' | 'history') {
+  carPickerTarget.value = target
+  carPickerQuery.value = ''
+  carPickerOpen.value = true
+}
+
+function pickCar(carId: number) {
+  if (carPickerTarget.value === 'history') selectHistoryCar(carId)
+  else selectScheduledCar(carId)
+  carPickerOpen.value = false
+}
+
 const carSelectorOpen = ref(false)
 const selectedScheduledCarId = ref<number | null>(null)
 
@@ -498,7 +535,15 @@ onMounted(() => {
                 <p class="text-xs text-muted-foreground">{{ t('sidebar.selectCar') }}</p>
               </template>
             </div>
-            <Popover v-model:open="historySelectorOpen">
+            <!-- Mobilda varaq, desktopda popover -->
+            <button
+              v-if="!isDesktop"
+              class="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted active:bg-accent transition-colors"
+              @click="openCarPicker('history')"
+            >
+              <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+            </button>
+            <Popover v-else v-model:open="historySelectorOpen">
               <PopoverTrigger as-child>
                 <button class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors">
                   <img :src="carIconSvg" alt="car" class="h-5 w-5" />
@@ -695,7 +740,15 @@ onMounted(() => {
             </div>
 
             <!-- Right: Car selector button -->
-            <Popover v-model:open="carSelectorOpen">
+            <!-- Mobilda varaq, desktopda popover -->
+            <button
+              v-if="!isDesktop"
+              class="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted active:bg-accent transition-colors"
+              @click="openCarPicker('scheduled')"
+            >
+              <img :src="carIconSvg" alt="car" class="h-5 w-5" />
+            </button>
+            <Popover v-else v-model:open="carSelectorOpen">
               <PopoverTrigger as-child>
                 <button
                   class="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors"
@@ -981,4 +1034,55 @@ onMounted(() => {
       </template>
     </div>
   </aside>
+
+  <!-- Mobil: transport tanlash varag'i (popover varaq ostida qolib ketmasin) -->
+  <DrawerRoot v-model:open="carPickerOpen">
+    <DrawerPortal>
+      <DrawerOverlay class="fixed inset-0 z-[1290] bg-black/60" />
+      <DrawerContent
+        class="fixed inset-x-0 bottom-0 z-[1300] flex flex-col rounded-t-2xl border-t border-border bg-background shadow-2xl outline-none"
+        style="max-height: 80dvh"
+      >
+        <div class="shrink-0 pt-2">
+          <DrawerHandle class="mx-auto h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+        </div>
+
+        <div class="shrink-0 px-4 pt-3 pb-2">
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="text-base font-semibold">{{ t('sidebar.selectCar') }}</h3>
+            <span class="text-xs text-muted-foreground">{{ carPickerList.length }}</span>
+          </div>
+          <div class="relative mt-3">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              v-model="carPickerQuery"
+              :placeholder="t('sidebar.search')"
+              class="pl-9 h-11 rounded-xl"
+            />
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto overscroll-contain px-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <button
+            v-for="car in carPickerList"
+            :key="car.id"
+            class="w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors"
+            :class="carPickerSelectedId === car.id ? 'bg-primary/15' : 'active:bg-accent'"
+            @click="pickCar(car.id)"
+          >
+            <img :src="carIconSvg" alt="car" class="h-7 w-7 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">{{ car.name }}</p>
+              <p v-if="car.carNumber" class="text-xs text-muted-foreground font-mono">{{ car.carNumber }}</p>
+            </div>
+            <Check v-if="carPickerSelectedId === car.id" class="h-5 w-5 text-primary flex-shrink-0" />
+          </button>
+
+          <p v-if="carPickerList.length === 0" class="py-10 text-center text-sm text-muted-foreground">
+            {{ t('sidebar.noVehicles') }}
+          </p>
+        </div>
+      </DrawerContent>
+    </DrawerPortal>
+  </DrawerRoot>
 </template>
